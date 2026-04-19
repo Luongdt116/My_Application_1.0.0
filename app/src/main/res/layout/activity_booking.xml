@@ -16,7 +16,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="30dp"
-            android:layout_marginBottom="10dp">
             <ImageView
                 android:id="@+id/btnBackBooking"
                 android:layout_width="wrap_content"
@@ -25,11 +24,9 @@
                 android:src="@android:drawable/ic_menu_revert"
                 app:tint="@color/white" />
             <TextView
-                android:id="@+id/tvVenueNameBooking"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
-                android:text="Đặt lịch"
                 android:textColor="@color/white"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -68,8 +65,6 @@
             android:orientation="horizontal">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="■ Trống" android:textColor="@color/white" android:textSize="10sp" android:layout_marginEnd="8dp"/>
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="■ Đã đặt" android:textColor="#E53935" android:textSize="10sp" android:layout_marginEnd="8dp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="■ Đang chọn" android:textColor="#FF9800" android:textSize="10sp" android:layout_marginEnd="8dp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="■ Khoá" android:textColor="#757575" android:textSize="10sp" />
         </LinearLayout>
     </LinearLayout>
 
@@ -78,43 +73,30 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="8dp"
-        android:text="Lưu ý: Nếu bạn cần đặt lịch cố định vui lòng liên hệ admin để được hỗ trợ"
         android:textColor="#D32F2F"
         android:textSize="11sp"
         android:background="#FFEBEE"
         app:layout_constraintTop_toBottomOf="@id/layoutHeaderInfo"/>
 
     <!-- Booking Table Section -->
-    <HorizontalScrollView
-        android:id="@+id/hsvBookingTable"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:fillViewport="true"
-        android:scrollbars="none"
         app:layout_constraintBottom_toTopOf="@id/zoomSlider"
         app:layout_constraintTop_toBottomOf="@id/tvWarning">
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvBookingCourts"
+            <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:overScrollMode="never" />
+                android:orientation="vertical">
 
-        </LinearLayout>
-    </HorizontalScrollView>
+                    android:layout_width="wrap_content"
+
+            </LinearLayout>
+        </HorizontalScrollView>
 
     <SeekBar
         android:id="@+id/zoomSlider"
-        android:layout_width="240dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:max="100"
-        android:progress="0"
         app:layout_constraintBottom_toTopOf="@id/btnNext"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

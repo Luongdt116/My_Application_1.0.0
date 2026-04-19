@@ -11,9 +11,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
 
-        <!-- Màn hình chính điều phối các Fragment -->
+        <!-- Màn hình Home chạy đầu tiên -->
         <activity
-            android:name=".MainActivity"
+            android:name=".HomeActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -21,21 +21,20 @@
             </intent-filter>
         </activity>
 
-        <!-- Các Activity thực thụ -->
         <activity android:name=".LoginActivity" />
         <activity android:name=".SignUpActivity" />
-        <activity android:name=".BookingActivity" />
-        <activity android:name=".PaymentActivity" />
+        <activity android:name=".ProfileActivity" />
+        <activity android:name=".DiscoveryActivity" />
+        <activity android:name=".OffersActivity" />
         <activity android:name=".HistoryActivity" />
         <activity android:name=".LicenseActivity" />
         <activity android:name=".EditProfileActivity" />
         <activity android:name=".ChangePasswordActivity" />
+        <activity android:name=".BookingActivity" />
+        <activity android:name=".PaymentActivity" />
         <activity android:name=".MovieActivity" />
         <activity android:name=".AddMovieActivity" />
         <activity android:name=".SplashScreenActivity" />
-
-        <!-- LƯU Ý: HomeActivity, DiscoveryActivity, OffersActivity, ProfileActivity 
-             đã được chuyển thành Fragment nên không khai báo là Activity ở đây -->
 
     </application>
 

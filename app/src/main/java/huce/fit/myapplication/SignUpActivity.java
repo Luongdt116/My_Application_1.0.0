@@ -15,29 +15,25 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-
-import java.util.HashMap;
-import java.util.Map;
+import huce.fit.myapplication.database.UserDatabaseHelper;
 
 public class SignUpActivity extends AppCompatActivity {
+    // 1. Khai báo các biến UI
     private EditText edUsername, edEmail, edPassword, edRepassword;
     private Button btnSignupAction;
     private TextView btnLoginRedirect;
 
-    private FirebaseAuth mAuth;
-    private DatabaseReference mDatabase;
+    private UserDatabaseHelper dbHelper;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.signup_activity);
 
-        mAuth = FirebaseAuth.getInstance();
-        mDatabase = FirebaseDatabase.getInstance().getReference();
+        // 2. Khởi tạo Database
+        dbHelper = new UserDatabaseHelper(this);
 
+        // 3. Ánh xạ ID từ XML (Hãy chắc chắn file signup_activity.xml đã có id: edEmail)
         edUsername = findViewById(R.id.edUsername);
         edEmail = findViewById(R.id.edEmail);
         edPassword = findViewById(R.id.edPassword);
@@ -45,6 +41,7 @@ public class SignUpActivity extends AppCompatActivity {
         btnSignupAction = findViewById(R.id.btnSignupAction);
         btnLoginRedirect = findViewById(R.id.btnLoginRedirect);
 
+        // 4. Xử lý sự kiện Click
         btnSignupAction.setOnClickListener(v -> {
             String fullName = edUsername.getText().toString().trim();
             String email = edEmail.getText().toString().trim();
@@ -62,31 +59,25 @@ public class SignUpActivity extends AppCompatActivity {
                 return;
             }
 
-            if (password.length() < 6) {
-                edPassword.setError("Mật khẩu phải ít nhất 6 ký tự");
+            // Kiểm tra trùng username
+            if (dbHelper.checkUsername(fullName)) {
+                edUsername.setError("Tên đăng nhập đã tồn tại!");
                 return;
             }
 
-            // Đăng ký tài khoản trên Firebase Auth
-            mAuth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        // Lưu thông tin người dùng vào Realtime Database
-                        String userId = mAuth.getCurrentUser().getUid();
-                        Map<String, Object> user = new HashMap<>();
-                        user.put("username", fullName);
-                        user.put("email", email);
-                        
-                        mDatabase.child("Users").child(userId).setValue(user)
-                            .addOnCompleteListener(dbTask -> {
-                                if (dbTask.isSuccessful()) {
-                                    showSuccessDialog();
-                                }
-                            });
-                    } else {
-                        Toast.makeText(this, "Đăng ký thất bại: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
-                    }
-                });
+            // Kiểm tra trùng email
+            if (dbHelper.checkEmail(email)) {
+                edEmail.setError("Email đã được sử dụng!");
+                return;
+            }
+
+            // Lưu người dùng vào database
+            boolean success = dbHelper.insertUser(fullName, email, password);
+            if (success) {
+                showSuccessDialog();
+            } else {
+                Toast.makeText(this, "Đăng ký thất bại, vui lòng thử lại", Toast.LENGTH_SHORT).show();
+            }
         });
 
         btnLoginRedirect.setOnClickListener(v -> finish());

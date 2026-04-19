@@ -1,15 +1,10 @@
 package huce.fit.myapplication.objects;
 
-import java.io.Serializable;
 
-public class AdminAccount implements Serializable {
     private int id;
     private String username;
     private String password;
     private int levelId;
-
-    public AdminAccount() {
-    }
 
     public AdminAccount(String username, String password, int levelId) {
         this.username = username;

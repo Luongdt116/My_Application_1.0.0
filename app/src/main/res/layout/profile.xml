@@ -19,12 +19,13 @@
     <androidx.cardview.widget.CardView
         android:id="@+id/mainContentCard"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         android:layout_marginTop="100dp"
         app:cardBackgroundColor="#F1F8E9"
         app:cardCornerRadius="32dp"
         app:cardElevation="0dp"
         app:cardPreventCornerOverlap="false"
+        app:layout_constraintBottom_toTopOf="@+id/footerInclude"
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.core.widget.NestedScrollView
@@ -56,7 +57,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
                         android:padding="16dp">
-                        <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@drawable/logo" android:contentDescription="Logo" />
+                        <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@drawable/logo" />
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -87,47 +88,56 @@
                         android:orientation="vertical"
                         android:padding="16dp">
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
-                            <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@drawable/logo" android:contentDescription="Avatar" />
+                            <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@drawable/logo" />
                             <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:orientation="vertical">
                                 <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center_vertical">
                                     <TextView android:id="@+id/tvProfileName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Nguyễn Văn A" android:textColor="@color/black" android:textStyle="bold" android:textSize="16sp" />
-                                    <ImageView android:id="@+id/btnEditProfile" android:layout_width="20dp" android:layout_height="20dp" android:layout_marginStart="8dp" android:src="@android:drawable/ic_menu_edit" app:tint="#D32F2F" android:contentDescription="Edit" />
+                                    <ImageView android:id="@+id/btnEditProfile" android:layout_width="20dp" android:layout_height="20dp" android:layout_marginStart="8dp" android:src="@android:drawable/ic_menu_edit" app:tint="#D32F2F" />
                                 </LinearLayout>
                                 <TextView android:id="@+id/tvProfileEmail" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="abc@gmail.com" android:textColor="#666666" android:textSize="12sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp">
+                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Điện thoại" android:textSize="11sp" />
+                                <TextView android:id="@+id/tvProfilePhone" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0987654321" android:textStyle="bold" />
+                            </LinearLayout>
+                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Năm sinh" android:textSize="11sp" />
+                                <TextView android:id="@+id/tvProfileBirthYear" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1999" android:textStyle="bold" />
+                            </LinearLayout>
+                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Giới tính" android:textSize="11sp" />
+                                <TextView android:id="@+id/tvProfileGender" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Nam" android:textStyle="bold" />
                             </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
-                <!-- KHỐI HOẠT ĐỘNG (Dùng ID layoutActivitySection để ẩn/hiện) -->
-                <LinearLayout
-                    android:id="@+id/layoutActivitySection"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:visibility="visible">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="20dp" android:text="Hoạt động" android:textColor="#09A459" android:textStyle="bold" />
-                    <androidx.cardview.widget.CardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" app:cardBackgroundColor="@color/white" app:cardCornerRadius="12dp" app:cardElevation="4dp">
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-                            <LinearLayout android:id="@+id/layoutHistory" android:layout_width="match_parent" android:layout_height="50dp" android:gravity="center_vertical" android:paddingHorizontal="16dp">
-                                <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_today" app:tint="#09A459" />
-                                <TextView android:id="@+id/tvHistory" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:text="Danh sách lịch đã đặt" android:textColor="@color/black" />
-                                <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@android:drawable/ic_media_play" app:tint="#DDDDDD" />
-                            </LinearLayout>
-                            <View android:id="@+id/dividerNotification" android:layout_width="match_parent" android:layout_height="1dp" android:background="#F5F5F5" android:layout_marginHorizontal="16dp" />
-                            <LinearLayout android:id="@+id/layoutNotification" android:layout_width="match_parent" android:layout_height="50dp" android:gravity="center_vertical" android:paddingHorizontal="16dp">
-                                <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_popup_reminder" app:tint="#09A459" />
-                                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:text="Thông báo" android:textColor="@color/black" />
-                                <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@android:drawable/ic_media_play" app:tint="#DDDDDD" />
-                            </LinearLayout>
+                <!-- 3. HOẠT ĐỘNG -->
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="20dp" android:text="Hoạt động" android:textColor="#09A459" android:textStyle="bold" />
+                <androidx.cardview.widget.CardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" app:cardBackgroundColor="@color/white" app:cardCornerRadius="12dp" app:cardElevation="4dp">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="50dp" android:gravity="center_vertical" android:paddingHorizontal="16dp">
+                            <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_today" app:tint="#09A459" />
+                            <TextView android:id="@+id/tvHistory" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:text="Danh sách lịch đã đặt" android:textColor="@color/black" />
+                            <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@android:drawable/ic_media_play" app:tint="#DDDDDD" />
                         </LinearLayout>
-                    </androidx.cardview.widget.CardView>
-                </LinearLayout>
+                        <View android:id="@+id/dividerNotification" android:layout_width="match_parent" android:layout_height="1dp" android:background="#F5F5F5" android:layout_marginHorizontal="16dp" android:visibility="gone"/>
+                        <LinearLayout android:id="@+id/layoutNotification" android:layout_width="match_parent" android:layout_height="50dp" android:gravity="center_vertical" android:paddingHorizontal="16dp" android:visibility="gone">
+                            <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_popup_reminder" app:tint="#09A459" />
+                            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:text="Thông báo" android:textColor="@color/black" />
+                            <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@android:drawable/ic_media_play" app:tint="#DDDDDD" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
 
                 <!-- 4. HỆ THỐNG -->
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="20dp" android:text="Hệ thống" android:textColor="#09A459" android:textStyle="bold" />
                 <androidx.cardview.widget.CardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" app:cardBackgroundColor="@color/white" app:cardCornerRadius="12dp" app:cardElevation="4dp">
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                        
+                        <!-- Luôn hiển thị -->
                         <LinearLayout android:id="@+id/layoutLicense" android:layout_width="match_parent" android:layout_height="50dp" android:gravity="center_vertical" android:paddingHorizontal="16dp">
                             <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@android:drawable/ic_lock_idle_lock" app:tint="#09A459" />
                             <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:layout_weight="1" android:text="Điều khoản và chính sách" android:textColor="@color/black" />
@@ -150,7 +160,7 @@
                                 <androidx.appcompat.widget.SwitchCompat android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" />
                             </LinearLayout>
                             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F5F5F5" android:layout_marginHorizontal="16dp" />
-                            <LinearLayout android:id="@+id/btnLayoutChangePassword" android:layout_width="match_parent" android:layout_height="50dp" android:gravity="center_vertical" android:paddingHorizontal="16dp">
+                            <LinearLayout android:layout_width="match_parent" android:layout_height="50dp" android:gravity="center_vertical" android:paddingHorizontal="16dp">
                                 <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_edit" app:tint="#09A459" />
                                 <TextView android:id="@+id/tvChangePassword" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:text="Đổi mật khẩu" android:textColor="@color/black" />
                                 <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@android:drawable/ic_media_play" app:tint="#DDDDDD" />
@@ -160,6 +170,11 @@
                                 <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_lock_power_off" app:tint="#09A459" />
                                 <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:text="Đăng xuất tài khoản" android:textColor="@color/black" />
                             </LinearLayout>
+                            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F5F5F5" android:layout_marginHorizontal="16dp" />
+                            <LinearLayout android:layout_width="match_parent" android:layout_height="50dp" android:gravity="center_vertical" android:paddingHorizontal="16dp">
+                                <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_delete" app:tint="#D32F2F" />
+                                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:text="Xóa tài khoản" android:textColor="#D32F2F" />
+                            </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
@@ -167,5 +182,13 @@
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
     </androidx.cardview.widget.CardView>
+
+    <!-- FOOTER DÙNG CHUNG -->
+    <include
+        android:id="@+id/footerInclude"
+        layout="@layout/layout_footer"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

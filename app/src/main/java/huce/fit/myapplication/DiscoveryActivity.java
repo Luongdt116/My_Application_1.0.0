@@ -1,77 +1,62 @@
 package huce.fit.myapplication;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Toast;
-import androidx.annotation.NonNull;
+import android.widget.TextView;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
-import huce.fit.myapplication.adapter.FieldAdapter;
-import huce.fit.myapplication.objects.Venue;
-import huce.fit.myapplication.viewmodel.HomeViewModel;
 
-public class DiscoveryActivity extends Fragment {
+public class DiscoveryActivity extends AppCompatActivity {
 
-    private MaterialButton btnOffer;
-    private RecyclerView rvDiscoveryFields;
-    private FieldAdapter fieldAdapter;
-    private HomeViewModel discoveryViewModel;
-
-    @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.discovery, container, false);
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.discovery);
 
-        btnOffer = view.findViewById(R.id.btnDiscoveryOffer);
-        rvDiscoveryFields = view.findViewById(R.id.rvDiscoveryFields);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
-        fieldAdapter = new FieldAdapter();
-        rvDiscoveryFields.setLayoutManager(new LinearLayoutManager(getActivity()));
-        rvDiscoveryFields.setAdapter(fieldAdapter);
-        rvDiscoveryFields.setNestedScrollingEnabled(false);
+        setupNavigation();
+        setupFooterNavigation();
+    }
 
-        discoveryViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
-        discoveryViewModel.getFields().observe(getViewLifecycleOwner(), fields -> {
-            if (fields != null && !fields.isEmpty()) {
-                fieldAdapter.setFields(fields);
-            }
-        });
-
-        discoveryViewModel.fetchFieldsFromFirebase();
-
+    private void setupNavigation() {
+        // Xử lý nút "Ưu đãi" để sang trang Offers
+        MaterialButton btnOffer = findViewById(R.id.btnDiscoveryOffer);
         if (btnOffer != null) {
             btnOffer.setOnClickListener(v -> {
-                if (getActivity() instanceof MainActivity) {
-                    ((MainActivity) getActivity()).navigateToOffers();
-                }
+                Intent intent = new Intent(this, OffersActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
             });
         }
 
-        // SỬA LỖI TẠI ĐÂY: Thay int position bằng Venue venue
-        fieldAdapter.setOnFieldClickListener(new FieldAdapter.OnFieldClickListener() {
-            @Override
-            public void onBookClick(Venue venue) {
-                Intent intent = new Intent(getActivity(), BookingActivity.class);
-                intent.putExtra("selected_venue", venue);
-                startActivity(intent);
-            }
+        // Các nút "Xem chi tiết" (giữ nguyên logic bạn đã thiết lập)
+        View btnDetail1 = findViewById(R.id.btnDiscoveryViewDetail1);
+        View btnDetail2 = findViewById(R.id.btnDiscoveryViewDetail2);
+        if (btnDetail1 != null) btnDetail1.setOnClickListener(v -> startActivity(new Intent(this, BookingActivity.class)));
+        if (btnDetail2 != null) btnDetail2.setOnClickListener(v -> startActivity(new Intent(this, BookingActivity.class)));
+    }
 
-            @Override
-            public void onItemClick(Venue venue) {
-                Intent intent = new Intent(getActivity(), BookingActivity.class);
-                intent.putExtra("selected_venue", venue);
-                startActivity(intent);
-            }
-        });
+    private void setupFooterNavigation() {
+        View tabHome = findViewById(R.id.layoutHomeTab);
+        View tabProfile = findViewById(R.id.layoutProfileTab);
+        
+        TextView tvDiscovery = findViewById(R.id.tvDiscoveryTab);
+        if (tvDiscovery != null) {
+            tvDiscovery.setTextColor(Color.parseColor("#09A459"));
+            tvDiscovery.setTypeface(null, android.graphics.Typeface.BOLD);
+        }
 
-        return view;
+        if (tabHome != null) {
+            tabHome.setOnClickListener(v -> startActivity(new Intent(this, HomeActivity.class).setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)));
+        }
+        if (tabProfile != null) {
+            tabProfile.setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class).setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)));
+        }
     }
 }
