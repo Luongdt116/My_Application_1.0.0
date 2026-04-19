@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "765197533901",
+    "project_id": "qlda-91f3c",
+    "storage_bucket": "qlda-91f3c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:765197533901:android:3e87e54ae812554d389f84",
+        "android_client_info": {
+          "package_name": "huce.fit.myapplication"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCa38jMdfF-jrlagM1dd8HflYNpdJQbr8s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

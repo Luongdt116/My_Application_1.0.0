@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F0F9F4">
+
+    <!-- Header -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbarBooking"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#09A459"
+        app:layout_constraintTop_toTopOf="parent">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="10dp"
+            >
+            <ImageView
+                android:id="@+id/btnBackBooking"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:src="@android:drawable/ic_menu_revert"
+                app:tint="@color/white" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="Đặt lịch ngày trực quan"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
+    </androidx.appcompat.widget.Toolbar>
+
+    <!-- Legend and Date Area -->
+    <LinearLayout
+        android:id="@+id/layoutHeaderInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#065F36"
+        android:orientation="vertical"
+        android:padding="12dp"
+        app:layout_constraintTop_toBottomOf="@id/toolbarBooking">
+
+        <TextView
+            android:id="@+id/tvSelectedDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:background="@drawable/custom_edittext"
+            android:backgroundTint="#2E7D32"
+            android:drawableEnd="@android:drawable/ic_menu_my_calendar"
+            android:drawablePadding="8dp"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="4dp"
+            android:text="15/04/2026"
+            android:textColor="@color/white"
+            android:textSize="14sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="■ Trống" android:textColor="@color/white" android:textSize="10sp" android:layout_marginEnd="8dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="■ Đã đặt" android:textColor="#E53935" android:textSize="10sp" android:layout_marginEnd="8dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="■ Khoá" android:textColor="#757575" android:textSize="10sp" android:layout_marginEnd="8dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="■ Sự kiện" android:textColor="#AB47BC" android:textSize="10sp"/>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Xem sân &amp; bảng giá"
+            android:textColor="#FFB300"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvWarning"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:text="Lưu ý: Nếu bạn cần đặt lịch cố định vui lòng liên hệ: 0989.592.468 để được hỗ trợ"
+        android:textColor="#D32F2F"
+        android:textSize="11sp"
+        android:background="#FFEBEE"
+        app:layout_constraintTop_toBottomOf="@id/layoutHeaderInfo"/>
+
+    <!-- Booking Table Section -->
+    <LinearLayout
+        android:id="@+id/layoutTable"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@id/zoomSlider"
+        app:layout_constraintTop_toBottomOf="@id/tvWarning">
+
+        <!-- Fixed Left Column: Field Names -->
+        <LinearLayout
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#E0F2F1">
+            <View android:layout_width="match_parent" android:layout_height="30dp" /> <!-- Header Spacer -->
+            <TextView android:layout_width="match_parent" android:layout_height="50dp" android:gravity="center" android:text="Sân 5" android:textStyle="bold" android:background="@drawable/custom_edittext"/>
+            <TextView android:layout_width="match_parent" android:layout_height="50dp" android:gravity="center" android:text="Sân VIP" android:textStyle="bold" android:background="@drawable/custom_edittext"/>
+            <TextView android:layout_width="match_parent" android:layout_height="50dp" android:gravity="center" android:text="Sân tập" android:textStyle="bold" android:background="@drawable/custom_edittext"/>
+        </LinearLayout>
+
+        <!-- Scrollable Right Side: Time and Status Grid -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Time Header -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="30dp"
+                    android:orientation="horizontal">
+                    <!-- Generate time slots from 5 to 24 -->
+                    <TextView android:layout_width="60dp" android:layout_height="match_parent" android:text="5:00" android:gravity="center" android:textSize="10sp"/>
+                    <TextView android:layout_width="60dp" android:layout_height="match_parent" android:text="6:00" android:gravity="center" android:textSize="10sp"/>
+                    <TextView android:layout_width="60dp" android:layout_height="match_parent" android:text="7:00" android:gravity="center" android:textSize="10sp"/>
+                    <TextView android:layout_width="60dp" android:layout_height="match_parent" android:text="8:00" android:gravity="center" android:textSize="10sp"/>
+                    <TextView android:layout_width="60dp" android:layout_height="match_parent" android:text="9:00" android:gravity="center" android:textSize="10sp"/>
+                    <TextView android:layout_width="60dp" android:layout_height="match_parent" android:text="10:00" android:gravity="center" android:textSize="10sp"/>
+                    <TextView android:layout_width="60dp" android:layout_height="match_parent" android:text="11:00" android:gravity="center" android:textSize="10sp"/>
+                    <TextView android:layout_width="60dp" android:layout_height="match_parent" android:text="12:00" android:gravity="center" android:textSize="10sp"/>
+                    <TextView android:layout_width="60dp" android:layout_height="match_parent" android:text="13:00" android:gravity="center" android:textSize="10sp"/>
+                    <TextView android:layout_width="60dp" android:layout_height="match_parent" android:text="14:00" android:gravity="center" android:textSize="10sp"/>
+                    <TextView android:layout_width="60dp" android:layout_height="match_parent" android:text="15:00" android:gravity="center" android:textSize="10sp"/>
+                    <TextView android:layout_width="60dp" android:layout_height="match_parent" android:text="16:00" android:gravity="center" android:textSize="10sp"/>
+                    <TextView android:layout_width="60dp" android:layout_height="match_parent" android:text="17:00" android:gravity="center" android:textSize="10sp"/>
+                    <TextView android:layout_width="60dp" android:layout_height="match_parent" android:text="18:00" android:gravity="center" android:textSize="10sp"/>
+                    <TextView android:layout_width="60dp" android:layout_height="match_parent" android:text="19:00" android:gravity="center" android:textSize="10sp"/>
+                    <TextView android:layout_width="60dp" android:layout_height="match_parent" android:text="20:00" android:gravity="center" android:textSize="10sp"/>
+                    <TextView android:layout_width="60dp" android:layout_height="match_parent" android:text="21:00" android:gravity="center" android:textSize="10sp"/>
+                    <TextView android:layout_width="60dp" android:layout_height="match_parent" android:text="22:00" android:gravity="center" android:textSize="10sp"/>
+                    <TextView android:layout_width="60dp" android:layout_height="match_parent" android:text="23:00" android:gravity="center" android:textSize="10sp"/>
+                    <TextView android:layout_width="60dp" android:layout_height="match_parent" android:text="24:00" android:gravity="center" android:textSize="10sp"/>
+                </LinearLayout>
+
+                <!-- Grid Rows -->
+                <!-- Row for Sân 5 -->
+                <LinearLayout android:layout_width="wrap_content" android:layout_height="50dp" android:orientation="horizontal">
+                    <View android:layout_width="60dp" android:layout_height="match_parent" android:background="#BDBDBD" android:layout_margin="1dp"/> <!-- 5:00 -->
+                    <View android:layout_width="60dp" android:layout_height="match_parent" android:background="#E53935" android:layout_margin="1dp"/> <!-- 6:00 (Đã đặt) -->
+                    <View android:layout_width="60dp" android:layout_height="match_parent" android:background="#E53935" android:layout_margin="1dp"/>
+                    <View android:layout_width="60dp" android:layout_height="match_parent" android:background="#FFFFFF" android:layout_margin="1dp"/>
+                    <View android:layout_width="60dp" android:layout_height="match_parent" android:background="#E53935" android:layout_margin="1dp"/>
+                    <View android:layout_width="60dp" android:layout_height="match_parent" android:background="#FFFFFF" android:layout_margin="1dp"/>
+                    <View android:layout_width="60dp" android:layout_height="match_parent" android:background="#FFFFFF" android:layout_margin="1dp" />
+                    <!-- ... more slots -->
+                </LinearLayout>
+
+                <!-- Row for Sân VIP -->
+                <LinearLayout android:layout_width="wrap_content" android:layout_height="50dp" android:orientation="horizontal">
+                    <View android:layout_width="60dp" android:layout_height="match_parent" android:background="#FFFFFF" android:layout_margin="1dp"/>
+                    <View android:layout_width="60dp" android:layout_height="match_parent" android:background="#E53935" android:layout_margin="1dp"/>
+                    <View android:layout_width="60dp" android:layout_height="match_parent" android:background="#FFFFFF" android:layout_margin="1dp"/>
+                    <View android:layout_width="60dp" android:layout_height="match_parent" android:background="#FFFFFF" android:layout_margin="1dp"/>
+                    <View android:layout_width="60dp" android:layout_height="match_parent" android:background="#E53935" android:layout_margin="1dp"/>
+                    <View android:layout_width="60dp" android:layout_height="match_parent" android:background="#E53935" android:layout_margin="1dp"/>
+                    <View android:layout_width="60dp" android:layout_height="match_parent" android:background="#FFFFFF" android:layout_margin="1dp" />
+                </LinearLayout>
+
+                <!-- Row for Sân tập -->
+                <LinearLayout android:layout_width="wrap_content" android:layout_height="50dp" android:orientation="horizontal">
+                    <View android:layout_width="60dp" android:layout_height="match_parent" android:background="#FFFFFF" android:layout_margin="1dp"/>
+                    <View android:layout_width="60dp" android:layout_height="match_parent" android:background="#FFFFFF" android:layout_margin="1dp"/>
+                    <View android:layout_width="60dp" android:layout_height="match_parent" android:background="#E53935" android:layout_margin="1dp"/>
+                    <View android:layout_width="60dp" android:layout_height="match_parent" android:background="#FFFFFF" android:layout_margin="1dp"/>
+                    <View android:layout_width="60dp" android:layout_height="match_parent" android:background="#E53935" android:layout_margin="1dp"/>
+                    <View android:layout_width="60dp" android:layout_height="match_parent" android:background="#FFFFFF" android:layout_margin="1dp"/>
+                    <View android:layout_width="60dp" android:layout_height="match_parent" android:background="#FFFFFF" android:layout_margin="1dp" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </HorizontalScrollView>
+    </LinearLayout>
+
+    <SeekBar
+        android:id="@+id/zoomSlider"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:progress="50"
+        app:layout_constraintBottom_toTopOf="@id/btnNext"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Bottom Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnNext"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:layout_margin="16dp"
+        android:backgroundTint="#FFB300"
+        android:text="TIẾP THEO"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        app:cornerRadius="8dp"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
