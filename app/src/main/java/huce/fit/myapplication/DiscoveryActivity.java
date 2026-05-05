@@ -1,62 +1,47 @@
 package huce.fit.myapplication;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.TextView;
+import android.view.ViewGroup;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 import com.google.android.material.button.MaterialButton;
 
-public class DiscoveryActivity extends AppCompatActivity {
+public class DiscoveryActivity extends Fragment {
 
+    private MaterialButton btnOffer;
+    private MaterialButton btnDetail1, btnDetail2;
+
+    @Nullable
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.discovery);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.discovery, container, false);
 
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().hide();
-        }
+        // --- ÁNH XẠ NỘI DUNG (GIỮ NGUYÊN ID) ---
+        btnOffer = view.findViewById(R.id.btnDiscoveryOffer);
+        btnDetail1 = view.findViewById(R.id.btnDiscoveryViewDetail1);
+        btnDetail2 = view.findViewById(R.id.btnDiscoveryViewDetail2);
 
-        setupNavigation();
-        setupFooterNavigation();
-    }
-
-    private void setupNavigation() {
-        // Xử lý nút "Ưu đãi" để sang trang Offers
-        MaterialButton btnOffer = findViewById(R.id.btnDiscoveryOffer);
+        // Chuyển sang trang Offers (Gọi hàm từ MainActivity)
         if (btnOffer != null) {
             btnOffer.setOnClickListener(v -> {
-                Intent intent = new Intent(this, OffersActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-                startActivity(intent);
+                if (getActivity() instanceof MainActivity) {
+                    ((MainActivity) getActivity()).navigateToOffers();
+                }
             });
         }
 
-        // Các nút "Xem chi tiết" (giữ nguyên logic bạn đã thiết lập)
-        View btnDetail1 = findViewById(R.id.btnDiscoveryViewDetail1);
-        View btnDetail2 = findViewById(R.id.btnDiscoveryViewDetail2);
-        if (btnDetail1 != null) btnDetail1.setOnClickListener(v -> startActivity(new Intent(this, BookingActivity.class)));
-        if (btnDetail2 != null) btnDetail2.setOnClickListener(v -> startActivity(new Intent(this, BookingActivity.class)));
-    }
-
-    private void setupFooterNavigation() {
-        View tabHome = findViewById(R.id.layoutHomeTab);
-        View tabProfile = findViewById(R.id.layoutProfileTab);
-        
-        TextView tvDiscovery = findViewById(R.id.tvDiscoveryTab);
-        if (tvDiscovery != null) {
-            tvDiscovery.setTextColor(Color.parseColor("#09A459"));
-            tvDiscovery.setTypeface(null, android.graphics.Typeface.BOLD);
+        // Các nút Xem chi tiết sang trang Booking (vẫn giữ là Activity)
+        if (btnDetail1 != null) {
+            btnDetail1.setOnClickListener(v -> startActivity(new Intent(getActivity(), BookingActivity.class)));
+        }
+        if (btnDetail2 != null) {
+            btnDetail2.setOnClickListener(v -> startActivity(new Intent(getActivity(), BookingActivity.class)));
         }
 
-        if (tabHome != null) {
-            tabHome.setOnClickListener(v -> startActivity(new Intent(this, HomeActivity.class).setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)));
-        }
-        if (tabProfile != null) {
-            tabProfile.setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class).setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)));
-        }
+        return view;
     }
 }
