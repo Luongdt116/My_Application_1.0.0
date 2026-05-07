@@ -24,20 +24,27 @@ public class HomeActivity extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        // Sử dụng giao diện home.xml (đã dọn dẹp phần include footer)
         View view = inflater.inflate(R.layout.home, container, false);
 
-        // Ánh xạ các thành phần
+        // --- ÁNH XẠ HEADER ---
         btnHomeLogin = view.findViewById(R.id.btnHomeLogin);
         btnHomeRegister = view.findViewById(R.id.btnHomeRegister);
         layoutAuthButtons = view.findViewById(R.id.layoutAuthButtons);
         tvFullName = view.findViewById(R.id.tvUserName);
 
+        // --- ÁNH XẠ NÚT ĐẶT LỊCH ---
         btnBookCourt1 = view.findViewById(R.id.btnBookCourt1);
         btnBookCourt2 = view.findViewById(R.id.btnBookCourt2);
 
-        if (btnBookCourt1 != null) btnBookCourt1.setOnClickListener(v -> startActivity(new Intent(getActivity(), BookingActivity.class)));
-        if (btnBookCourt2 != null) btnBookCourt2.setOnClickListener(v -> startActivity(new Intent(getActivity(), BookingActivity.class)));
+        if (btnBookCourt1 != null) {
+            btnBookCourt1.setOnClickListener(v -> startActivity(new Intent(getActivity(), BookingActivity.class)));
+        }
+        if (btnBookCourt2 != null) {
+            btnBookCourt2.setOnClickListener(v -> startActivity(new Intent(getActivity(), BookingActivity.class)));
+        }
 
+        // Auth Buttons
         if (btnHomeLogin != null) btnHomeLogin.setOnClickListener(v -> startActivity(new Intent(getActivity(), LoginActivity.class)));
         if (btnHomeRegister != null) btnHomeRegister.setOnClickListener(v -> startActivity(new Intent(getActivity(), SignUpActivity.class)));
 

@@ -18,14 +18,15 @@ public class DiscoveryActivity extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        // Sử dụng layout discovery.xml gốc của bạn
         View view = inflater.inflate(R.layout.discovery, container, false);
 
-        // --- ÁNH XẠ NỘI DUNG (GIỮ NGUYÊN ID) ---
+        // --- ÁNH XẠ NỘI DUNG (GIỮ NGUYÊN 100% ID) ---
         btnOffer = view.findViewById(R.id.btnDiscoveryOffer);
         btnDetail1 = view.findViewById(R.id.btnDiscoveryViewDetail1);
         btnDetail2 = view.findViewById(R.id.btnDiscoveryViewDetail2);
 
-        // Chuyển sang trang Offers (Gọi hàm từ MainActivity)
+        // Chuyển sang trang Offers thông qua MainActivity
         if (btnOffer != null) {
             btnOffer.setOnClickListener(v -> {
                 if (getActivity() instanceof MainActivity) {
