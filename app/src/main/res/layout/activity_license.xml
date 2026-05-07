@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <!-- Header -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbarLicense"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/white"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:id="@+id/btnBackLicense"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:padding="8dp"
+                android:src="@android:drawable/ic_menu_revert"
+                app:tint="#09A459" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="ĐIỀU KHOẢN SỬ DỤNG"
+                android:textColor="#09A459"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
+    </androidx.appcompat.widget.Toolbar>
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#EEEEEE"
+        app:layout_constraintTop_toBottomOf="@id/toolbarLicense" />
+
+    <!-- Content -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:padding="16dp"
+        app:layout_constraintBottom_toTopOf="@id/btnAgree"
+        app:layout_constraintTop_toBottomOf="@id/divider">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ĐIỀU KHOẢN &amp; CHÍNH SÁCH – ABC"
+                android:textColor="#09A459"
+                android:textStyle="bold"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:lineSpacingExtra="4dp"
+                android:text="1. Giới thiệu\nỨng dụng ABC là nền tảng hỗ trợ người dùng tìm kiếm, đặt sân và thanh toán các dịch vụ thể thao một cách nhanh chóng và tiện lợi.\nKhi sử dụng ứng dụng, bạn đồng ý tuân thủ các điều khoản dưới đây.\n\n2. Tài khoản người dùng\n• Người dùng phải cung cấp thông tin chính xác khi đăng ký.\n• Không chia sẻ tài khoản cho người khác.\n• Bạn chịu trách nhiệm cho mọi hoạt động diễn ra trên tài khoản của mình.\n\n3. Đặt sân &amp; thanh toán\n• Người dùng có thể đặt sân theo khung giờ có sẵn.\n• Việc đặt sân chỉ được xác nhận sau khi thanh toán thành công.\n• Giá sân có thể thay đổi tùy theo thời điểm và địa điểm.\n\n4. Chính sách hủy đặt sân\n• Hủy trước 24 giờ: Hoàn tiền 100%.\n• Hủy trước 12–24 giờ: Hoàn tiền 50%.\n• Hủy dưới 12 giờ: Không hoàn tiền.\n\n5. Quy định sử dụng sân\n• Đến đúng giờ đã đặt.\n• Không gây hư hỏng cơ sở vật chất.\n• Tuân thủ nội quy của sân thể thao.\n• ABC có quyền từ chối phục vụ nếu người dùng vi phạm quy định.\n\n6. Chính sách thanh toán\n• Hỗ trợ thanh toán qua ví điện tử, thẻ ngân hàng.\n• Mọi giao dịch được xử lý qua hệ thống bảo mật.\n• ABC không lưu trữ thông tin thẻ của người dùng.\n\n7. Bảo mật thông tin\n• Thông tin cá nhân được bảo mật và chỉ dùng để cải thiện dịch vụ.\n• Không chia sẻ thông tin cho bên thứ ba nếu không có sự đồng ý của người dùng (trừ khi pháp luật yêu cầu).\n\n8. Trách nhiệm\nABC không chịu trách nhiệm cho các chấn thương cá nhân hoặc mất mát tài sản xảy ra trong quá trình tham gia hoạt động thể thao.\n\n9. Thay đổi điều khoản\nABC có thể cập nhật điều khoản bất cứ lúc nào. Người dùng sẽ được thông báo khi có thay đổi quan trọng.\n\n10. Liên hệ hỗ trợ\n• Email: support@abc.com\n• Hotline: 0123 456 789"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Footer Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAgree"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:layout_margin="16dp"
+        android:backgroundTint="#09A459"
+        android:text="Đồng ý"
+        android:textAllCaps="false"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:cornerRadius="8dp"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
