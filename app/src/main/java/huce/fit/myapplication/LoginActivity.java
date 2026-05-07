@@ -17,7 +17,7 @@ import huce.fit.myapplication.objects.CustomerAccount;
 
 public class LoginActivity extends AppCompatActivity {
     private Button btnLogin;
-    private TextView btnSignup; // Sửa từ Button thành TextView cho khớp với XML
+    private TextView btnSignup; // Đúng kiểu TextView từ XML
     private EditText edUsername, edPassword;
     private AppDatabase db;
 
@@ -30,62 +30,45 @@ public class LoginActivity extends AppCompatActivity {
             getSupportActionBar().hide();
         }
 
-        try {
-            // Ánh xạ an toàn
-            btnLogin = findViewById(R.id.btnLogin);
-            btnSignup = findViewById(R.id.btnSignup); // Hệ thống sẽ tìm thấy TextView này
-            edUsername = findViewById(R.id.edUsername);
-            edPassword = findViewById(R.id.edPassword);
+        btnLogin = findViewById(R.id.btnLogin);
+        btnSignup = findViewById(R.id.btnSignup);
+        edUsername = findViewById(R.id.edUsername);
+        edPassword = findViewById(R.id.edPassword);
+        db = AppDatabase.getInstance(this);
 
-            db = AppDatabase.getInstance(this);
+        if (btnLogin != null) {
+            btnLogin.setOnClickListener(view -> {
+                String username = edUsername.getText().toString().trim();
+                String password = edPassword.getText().toString().trim();
 
-            if (btnLogin != null) {
-                btnLogin.setOnClickListener(view -> {
-                    if (edUsername == null || edPassword == null) return;
-                    
-                    String username = edUsername.getText().toString().trim();
-                    String password = edPassword.getText().toString().trim();
+                if (TextUtils.isEmpty(username) || TextUtils.isEmpty(password)) {
+                    Toast.makeText(this, "Vui lòng nhập đủ thông tin", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-                    if (TextUtils.isEmpty(username) || TextUtils.isEmpty(password)) {
-                        Toast.makeText(this, "Vui lòng nhập đủ thông tin", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    // Kiểm tra database trên luồng ngầm
-                    Executors.newSingleThreadExecutor().execute(() -> {
-                        try {
-                            CustomerAccount account = db.customerAccountDao().login(username, password);
-                            runOnUiThread(() -> {
-                                if (account != null) {
-                                    SharedPreferences pref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
-                                    pref.edit().putString("username", username).putBoolean("isLoggedIn", true).apply();
-                                    
-                                    Toast.makeText(this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
-                                    startActivity(new Intent(this, HomeActivity.class));
-                                    finish();
-                                } else {
-                                    Toast.makeText(this, "Tài khoản hoặc mật khẩu sai", Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                Executors.newSingleThreadExecutor().execute(() -> {
+                    CustomerAccount account = db.customerAccountDao().login(username, password);
+                    runOnUiThread(() -> {
+                        if (account != null) {
+                            SharedPreferences pref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+                            pref.edit().putString("username", username).putBoolean("isLoggedIn", true).apply();
+                            
+                            Toast.makeText(this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
+                            // CHUYỂN VỀ MAINACTIVITY (Vì Home hiện tại là Fragment trong Main)
+                            Intent intent = new Intent(this, MainActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
+                            finish();
+                        } else {
+                            Toast.makeText(this, "Tài khoản hoặc mật khẩu sai", Toast.LENGTH_SHORT).show();
                         }
                     });
                 });
-            }
+            });
+        }
 
-            if (btnSignup != null) {
-                btnSignup.setOnClickListener(v -> startActivity(new Intent(this, SignUpActivity.class)));
-            }
-
-            // Nút back (mũi tên quay lại)
-            View btnBack = findViewById(R.id.btnBackLogin);
-            if (btnBack != null) {
-                btnBack.setOnClickListener(v -> finish());
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (btnSignup != null) {
+            btnSignup.setOnClickListener(v -> startActivity(new Intent(this, SignUpActivity.class)));
         }
     }
 }
