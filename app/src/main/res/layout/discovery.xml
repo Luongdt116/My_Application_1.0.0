@@ -13,7 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="16dp"
         android:text="KHÁM PHÁ"
         android:textColor="#09A459"
         android:textSize="18sp"
@@ -62,7 +62,7 @@
         android:layout_marginTop="8dp"
         android:clipChildren="false"
         android:clipToPadding="false"
-        app:layout_constraintBottom_toTopOf="@+id/footerInclude"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/layoutFilters">
 
         <LinearLayout
@@ -108,11 +108,8 @@
                         <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content">
                             <TextView android:id="@+id/tvBadge1" android:layout_width="20dp" android:layout_height="20dp" android:background="@drawable/logo" android:backgroundTint="#09A459" android:gravity="center" android:text="1" android:textColor="@color/white" android:textSize="10sp" />
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:layout_toEndOf="@id/tvBadge1" android:text="Sân trống" android:textColor="#09A459" android:textSize="10sp" android:textStyle="bold" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="Xem thêm (4) ⌄" android:textColor="#09A459" android:textSize="11sp" />
                         </RelativeLayout>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="11/04/2026" android:textColor="@color/black" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="C.Lông 1: 14:30 - 17:30 , 19:00 - 19:30" android:textSize="12sp" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="C.Lông 2: 14:30 - 16:30 , 18:00 - 18:30" android:textSize="12sp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="11/04/2026" android:textStyle="bold" />
                         <com.google.android.material.button.MaterialButton 
                             android:id="@+id/btnDiscoveryViewDetail1"
                             android:layout_width="match_parent" 
@@ -124,7 +121,6 @@
                             app:cornerRadius="8dp" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_marginTop="16dp" android:text="Xem thêm 6 lịch khác ⌄" android:textColor="#09A459" android:textSize="11sp" />
             </LinearLayout>
 
             <View android:layout_width="match_parent" android:layout_height="8dp" android:background="#F0F9F4" />
@@ -143,38 +139,17 @@
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3.2km | 36 Hoàng Mai, Hà Nội" android:textSize="11sp" />
                     </LinearLayout>
                 </LinearLayout>
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="Sân trống trong hôm nay" android:textColor="@color/black" android:textSize="13sp" />
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    app:cardCornerRadius="8dp"
-                    app:cardElevation="2dp">
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="12dp">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="12/04/2026" android:textStyle="bold" android:textColor="@color/black" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Pick 1: 05:00 - 06:00 , 08:00 - 10:00" android:textSize="12sp" />
-                        <com.google.android.material.button.MaterialButton 
-                            android:id="@+id/btnDiscoveryViewDetail2"
-                            android:layout_width="match_parent" 
-                            android:layout_height="40dp" 
-                            android:layout_marginTop="12dp" 
-                            android:backgroundTint="#09A459" 
-                            android:text="Xem chi tiết" 
-                            android:textAllCaps="false" 
-                            app:cornerRadius="8dp" />
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                <com.google.android.material.button.MaterialButton 
+                    android:id="@+id/btnDiscoveryViewDetail2"
+                    android:layout_width="match_parent" 
+                    android:layout_height="40dp" 
+                    android:layout_marginTop="12dp" 
+                    android:backgroundTint="#09A459" 
+                    android:text="Xem chi tiết" 
+                    android:textAllCaps="false" 
+                    app:cornerRadius="8dp" />
             </LinearLayout>
-
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-
-    <!-- FOOTER DÙNG CHUNG -->
-    <include
-        android:id="@+id/footerInclude"
-        layout="@layout/layout_footer"
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
