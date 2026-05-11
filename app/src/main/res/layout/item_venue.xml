@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="20dp"
@@ -18,7 +19,7 @@
             android:layout_width="match_parent"
             android:layout_height="160dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/badminton" />
+            tools:src="@drawable/badminton" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -36,29 +37,39 @@
                     android:id="@+id/tvFieldName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Sân cầu lông YYS"
-                    android:textStyle="bold"
+                    android:textColor="@color/black"
                     android:textSize="15sp"
-                    android:textColor="@color/black" />
+                    android:textStyle="bold"
+                    tools:text="Tên sân bóng (Động)" />
 
                 <TextView
                     android:id="@+id/tvFieldLocation"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="(12.5km) Ý Yên - Nam Định"
+                    android:textColor="#666666"
                     android:textSize="11sp"
-                    android:textColor="#666666" />
+                    tools:text="Địa chỉ sân (Động)" />
+
+                <TextView
+                    android:id="@+id/tvFieldPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textColor="#D32F2F"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    tools:text="Giá từ: 0đ (Động)" />
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnBook"
                 android:layout_width="wrap_content"
                 android:layout_height="36dp"
+                android:backgroundTint="@color/primary_green"
+                android:paddingHorizontal="10dp"
                 android:text="ĐẶT LỊCH"
                 android:textSize="11sp"
-                app:cornerRadius="18dp"
-                android:backgroundTint="@color/primary_green"
-                android:paddingHorizontal="10dp" />
+                app:cornerRadius="18dp" />
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

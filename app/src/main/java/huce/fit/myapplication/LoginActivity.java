@@ -11,15 +11,18 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import java.util.concurrent.Executors;
-import huce.fit.myapplication.database.AppDatabase;
-import huce.fit.myapplication.objects.CustomerAccount;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class LoginActivity extends AppCompatActivity {
     private Button btnLogin;
-    private TextView btnSignup; // Đúng kiểu TextView từ XML
-    private EditText edUsername, edPassword;
-    private AppDatabase db;
+    private TextView btnSignup;
+    private EditText edEmail, edPassword;
+    private FirebaseAuth mAuth;
+    private DatabaseReference mDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,40 +33,50 @@ public class LoginActivity extends AppCompatActivity {
             getSupportActionBar().hide();
         }
 
+        mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+
         btnLogin = findViewById(R.id.btnLogin);
         btnSignup = findViewById(R.id.btnSignup);
-        edUsername = findViewById(R.id.edUsername);
+        edEmail = findViewById(R.id.edUsername); // Lưu ý: Trong layout của bạn ID có thể vẫn là edUsername nhưng ta dùng để nhập Email
         edPassword = findViewById(R.id.edPassword);
-        db = AppDatabase.getInstance(this);
 
         if (btnLogin != null) {
             btnLogin.setOnClickListener(view -> {
-                String username = edUsername.getText().toString().trim();
+                String email = edEmail.getText().toString().trim();
                 String password = edPassword.getText().toString().trim();
 
-                if (TextUtils.isEmpty(username) || TextUtils.isEmpty(password)) {
+                if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
                     Toast.makeText(this, "Vui lòng nhập đủ thông tin", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                Executors.newSingleThreadExecutor().execute(() -> {
-                    CustomerAccount account = db.customerAccountDao().login(username, password);
-                    runOnUiThread(() -> {
-                        if (account != null) {
-                            SharedPreferences pref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
-                            pref.edit().putString("username", username).putBoolean("isLoggedIn", true).apply();
+                // Đăng nhập bằng Firebase Auth
+                mAuth.signInWithEmailAndPassword(email, password)
+                    .addOnCompleteListener(this, task -> {
+                        if (task.isSuccessful()) {
+                            String userId = mAuth.getCurrentUser().getUid();
                             
-                            Toast.makeText(this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
-                            // CHUYỂN VỀ MAINACTIVITY (Vì Home hiện tại là Fragment trong Main)
-                            Intent intent = new Intent(this, MainActivity.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(intent);
-                            finish();
+                            // Lấy thêm thông tin username từ Database
+                            mDatabase.child("Users").child(userId).get().addOnCompleteListener(dbTask -> {
+                                String username = email; // Mặc định dùng email nếu không lấy được username
+                                if (dbTask.isSuccessful() && dbTask.getResult().exists()) {
+                                    username = dbTask.getResult().child("username").getValue(String.class);
+                                }
+                                
+                                SharedPreferences pref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+                                pref.edit().putString("username", username).putBoolean("isLoggedIn", true).apply();
+                                
+                                Toast.makeText(this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
+                                Intent intent = new Intent(this, MainActivity.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                                finish();
+                            });
                         } else {
-                            Toast.makeText(this, "Tài khoản hoặc mật khẩu sai", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "Sai tài khoản hoặc mật khẩu", Toast.LENGTH_SHORT).show();
                         }
                     });
-                });
             });
         }
 
