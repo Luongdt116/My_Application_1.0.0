@@ -49,7 +49,7 @@
             android:layout_width="wrap_content"
             android:layout_height="32dp"
             android:layout_marginStart="8dp"
-            android:backgroundTint="#FFB300"
+            android:backgroundTint="#09A459"
             android:text="Ưu đãi"
             android:textAllCaps="false"
             android:textColor="@color/white"
