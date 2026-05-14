@@ -9,6 +9,7 @@ import huce.fit.myapplication.repository.FieldRepository;
 
 public class HomeViewModel extends ViewModel {
     private MutableLiveData<List<Venue>> mFieldList = new MutableLiveData<>();
+    private MutableLiveData<List<Venue>> mPromotedFieldList = new MutableLiveData<>();
     private FieldRepository mFieldRepository;
 
     public HomeViewModel() {
@@ -17,6 +18,10 @@ public class HomeViewModel extends ViewModel {
 
     public LiveData<List<Venue>> getFields() {
         return mFieldList;
+    }
+
+    public LiveData<List<Venue>> getPromotedFields() {
+        return mPromotedFieldList;
     }
 
     public void fetchFieldsFromFirebase() {
@@ -28,7 +33,19 @@ public class HomeViewModel extends ViewModel {
 
             @Override
             public void onFailure(String error) {
-                // Đã cập nhật tham số từ Exception thành String để khớp với FieldRepository
+            }
+        });
+    }
+
+    public void fetchPromotedFieldsFromFirebase() {
+        mFieldRepository.fetchPromotedFields(new FieldRepository.OnDataLoaded() {
+            @Override
+            public void onSuccess(List<Venue> venueList) {
+                mPromotedFieldList.setValue(venueList);
+            }
+
+            @Override
+            public void onFailure(String error) {
             }
         });
     }

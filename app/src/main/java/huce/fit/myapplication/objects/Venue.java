@@ -13,7 +13,7 @@ public class Venue implements Serializable {
     private String phone;
     private String opening_time;
     private String closing_time;
-    private String status;
+    private int status; // CẬP NHẬT: Chuyển từ String sang int (1: active, 0: maintenance)
     private Map<String, VenuePrice> venue_prices;
     private List<VenueImage> images;
 
@@ -55,7 +55,7 @@ public class Venue implements Serializable {
         return String.format("%,dđ", firstPrice.fixed_price);
     }
 
-    // --- ĐẦY ĐỦ GETTERS VÀ SETTERS (Quan trọng cho Firebase) ---
+    // --- ĐẦY ĐỦ GETTERS VÀ SETTERS ---
     public String getVenueId() { return venueId; }
     public void setVenueId(String venueId) { this.venueId = venueId; }
 
@@ -80,8 +80,8 @@ public class Venue implements Serializable {
     public String getClosing_time() { return closing_time; }
     public void setClosing_time(String closing_time) { this.closing_time = closing_time; }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public int getStatus() { return status; }
+    public void setStatus(int status) { this.status = status; }
 
     public Map<String, VenuePrice> getVenue_prices() { return venue_prices; }
     public void setVenue_prices(Map<String, VenuePrice> venue_prices) { this.venue_prices = venue_prices; }

@@ -8,7 +8,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import huce.fit.myapplication.objects.Venue;
 
 public class FieldRepository {
@@ -16,16 +18,11 @@ public class FieldRepository {
     private static final String TAG = "FIREBASE_CHECK";
 
     public FieldRepository() {
-        // CẬP NHẬT: Sử dụng URL máy chủ Mỹ (US) theo đúng Project của bạn
         String dbUrl = "https://app-moblie-131d8-default-rtdb.firebaseio.com/";
-        
         try {
-            mDatabase = FirebaseDatabase.getInstance(dbUrl).getReference("Venues");
-            Log.d(TAG, "Đã khởi tạo kết nối tới máy chủ Mỹ: " + dbUrl);
+            mDatabase = FirebaseDatabase.getInstance(dbUrl).getReference();
         } catch (Exception e) {
-            Log.e(TAG, "Lỗi kết nối URL: " + e.getMessage());
-            // Dự phòng: Tự động lấy từ google-services.json
-            mDatabase = FirebaseDatabase.getInstance().getReference("Venues");
+            mDatabase = FirebaseDatabase.getInstance().getReference();
         }
     }
 
@@ -35,37 +32,73 @@ public class FieldRepository {
     }
 
     public void fetchAllFields(OnDataLoaded callback) {
-        if (mDatabase == null) return;
-
-        mDatabase.addValueEventListener(new ValueEventListener() {
+        mDatabase.child("Venues").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<Venue> venueList = new ArrayList<>();
-                Log.d(TAG, "Dữ liệu có tồn tại trên Web không? " + snapshot.exists());
-                
                 if (snapshot.exists()) {
-                    Log.d(TAG, "THÀNH CÔNG! Đã thấy " + snapshot.getChildrenCount() + " sân bóng.");
                     for (DataSnapshot data : snapshot.getChildren()) {
                         try {
                             Venue venue = data.getValue(Venue.class);
-                            if (venue != null) {
+                            if (venue != null && venue.getStatus() == 1) {
                                 venue.setVenueId(data.getKey());
                                 venueList.add(venue);
-                                Log.d(TAG, "Đã nạp sân: " + venue.getVenue_name());
                             }
                         } catch (Exception e) {
-                            Log.e(TAG, "Lỗi khi nạp dữ liệu tại " + data.getKey() + ": " + e.getMessage());
+                            Log.e(TAG, "Lỗi nạp dữ liệu: " + e.getMessage());
                         }
                     }
-                } else {
-                    Log.e(TAG, "THẤT BẠI: Nút 'Venues' rỗng. Hãy kiểm tra lại tên nút trên Web (phải đúng chữ V viết hoa)");
                 }
                 callback.onSuccess(venueList);
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Log.e(TAG, "LỖI FIREBASE: " + error.getMessage());
+                callback.onFailure(error.getMessage());
+            }
+        });
+    }
+
+    public void fetchPromotedFields(OnDataLoaded callback) {
+        // BƯỚC 1: Lấy danh sách ID các sân có ưu đãi (status = 1)
+        mDatabase.child("Promotions").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot promoSnapshot) {
+                Set<String> promotedVenueIds = new HashSet<>();
+                for (DataSnapshot promoData : promoSnapshot.getChildren()) {
+                    Integer status = promoData.child("status").getValue(Integer.class);
+                    String venueId = promoData.child("venue_id").getValue(String.class);
+                    if (status != null && status == 1 && venueId != null) {
+                        promotedVenueIds.add(venueId);
+                    }
+                }
+
+                // BƯỚC 2: Lấy thông tin chi tiết các sân đó
+                mDatabase.child("Venues").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot venueSnapshot) {
+                        List<Venue> promotedVenues = new ArrayList<>();
+                        for (DataSnapshot venueData : venueSnapshot.getChildren()) {
+                            if (promotedVenueIds.contains(venueData.getKey())) {
+                                Venue venue = venueData.getValue(Venue.class);
+                                if (venue != null && venue.getStatus() == 1) {
+                                    venue.setVenueId(venueData.getKey());
+                                    promotedVenues.add(venue);
+                                }
+                            }
+                        }
+                        callback.onSuccess(promotedVenues);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        callback.onFailure(error.getMessage());
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
                 callback.onFailure(error.getMessage());
             }
         });
