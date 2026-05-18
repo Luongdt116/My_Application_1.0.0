@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 import huce.fit.myapplication.adapter.FieldAdapter;
+import huce.fit.myapplication.objects.Venue;
 import huce.fit.myapplication.viewmodel.HomeViewModel;
 
 public class HomeActivity extends Fragment {
@@ -45,23 +46,37 @@ public class HomeActivity extends Fragment {
         fieldAdapter = new FieldAdapter();
         rvFields.setLayoutManager(new LinearLayoutManager(getActivity()));
         rvFields.setAdapter(fieldAdapter);
-        rvFields.setNestedScrollingEnabled(false); // Quan trọng để cuộn mượt trong NestedScrollView
+        rvFields.setNestedScrollingEnabled(false);
 
         // 3. Kết nối MVVM và Lắng nghe dữ liệu
         homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
         homeViewModel.getFields().observe(getViewLifecycleOwner(), fields -> {
             if (fields != null && !fields.isEmpty()) {
                 fieldAdapter.setFields(fields);
-                Log.d("HomeActivity", "Đã nhận " + fields.size() + " sân từ ViewModel");
-            } else {
-                Toast.makeText(getActivity(), "Chưa có dữ liệu sân từ Firebase!", Toast.LENGTH_LONG).show();
             }
         });
 
         // 4. Gọi lệnh tải dữ liệu
         homeViewModel.fetchFieldsFromFirebase();
 
-        // 5. Sự kiện Click
+        // 5. Sự kiện Click cho từng sân
+        fieldAdapter.setOnFieldClickListener(new FieldAdapter.OnFieldClickListener() {
+            @Override
+            public void onBookClick(Venue venue) {
+                Intent intent = new Intent(getActivity(), BookingActivity.class);
+                intent.putExtra("selected_venue", venue);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onItemClick(Venue venue) {
+                Intent intent = new Intent(getActivity(), BookingActivity.class);
+                intent.putExtra("selected_venue", venue);
+                startActivity(intent);
+            }
+        });
+
+        // 6. Auth buttons
         if (btnHomeLogin != null) btnHomeLogin.setOnClickListener(v -> startActivity(new Intent(getActivity(), LoginActivity.class)));
         if (btnHomeRegister != null) btnHomeRegister.setOnClickListener(v -> startActivity(new Intent(getActivity(), SignUpActivity.class)));
 

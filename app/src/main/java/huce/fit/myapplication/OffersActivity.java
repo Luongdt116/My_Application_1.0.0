@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 import huce.fit.myapplication.adapter.FieldAdapter;
+import huce.fit.myapplication.objects.Venue;
 import huce.fit.myapplication.viewmodel.HomeViewModel;
 
 public class OffersActivity extends Fragment {
@@ -59,15 +60,20 @@ public class OffersActivity extends Fragment {
             });
         }
 
+        // SỬA LỖI TẠI ĐÂY: Thay int position bằng Venue venue để đồng bộ với Interface
         fieldAdapter.setOnFieldClickListener(new FieldAdapter.OnFieldClickListener() {
             @Override
-            public void onBookClick(int position) {
-                startActivity(new Intent(getActivity(), BookingActivity.class));
+            public void onBookClick(Venue venue) {
+                Intent intent = new Intent(getActivity(), BookingActivity.class);
+                intent.putExtra("selected_venue", venue);
+                startActivity(intent);
             }
 
             @Override
-            public void onItemClick(int position) {
-                startActivity(new Intent(getActivity(), BookingActivity.class));
+            public void onItemClick(Venue venue) {
+                Intent intent = new Intent(getActivity(), BookingActivity.class);
+                intent.putExtra("selected_venue", venue);
+                startActivity(intent);
             }
         });
 
