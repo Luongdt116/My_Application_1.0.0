@@ -88,53 +88,46 @@
                 app:cardCornerRadius="25dp"
                 app:cardElevation="4dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:paddingHorizontal="15dp">
-                    <EditText android:id="@+id/etSearchHome" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="@null" android:hint="Tìm kiếm" android:textSize="14sp" />
+                    <EditText android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="@null" android:hint="Tìm kiếm" android:textSize="14sp" />
                     <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_menu_search" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- 3. Sport Icons Grid (Added IDs for filtering) -->
+            <!-- 3. Sport Icons Grid -->
             <GridLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="25dp"
                 android:columnCount="4"
                 android:paddingHorizontal="10dp">
-                
-                <LinearLayout android:id="@+id/btnPickleball" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:layout_marginBottom="15dp" android:orientation="vertical" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true">
+                <LinearLayout android:id="@+id/btnFilterPickleball" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:layout_marginBottom="15dp" android:orientation="vertical">
                     <androidx.cardview.widget.CardView android:layout_width="50dp" android:layout_height="50dp" app:cardCornerRadius="12dp"><ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:padding="8dp" android:src="@drawable/pickleball" /></androidx.cardview.widget.CardView>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pickleball" android:textSize="11sp" />
                 </LinearLayout>
-
-                <LinearLayout android:id="@+id/btnBadminton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true">
+                <LinearLayout android:id="@+id/btnFilterBadminton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical">
                     <androidx.cardview.widget.CardView android:layout_width="50dp" android:layout_height="50dp" app:cardCornerRadius="12dp"><ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:padding="8dp" android:src="@drawable/badminton" /></androidx.cardview.widget.CardView>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Cầu lông" android:textSize="11sp" />
                 </LinearLayout>
-
-                <LinearLayout android:id="@+id/btnFootball" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true">
+                <LinearLayout android:id="@+id/btnFilterFootball" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical">
                     <androidx.cardview.widget.CardView android:layout_width="50dp" android:layout_height="50dp" app:cardCornerRadius="12dp"><ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:padding="8dp" android:src="@drawable/football" /></androidx.cardview.widget.CardView>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Bóng đá" android:textSize="11sp" />
                 </LinearLayout>
-
-                <LinearLayout android:id="@+id/btnTennis" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true">
+                <LinearLayout android:id="@+id/btnFilterTennis" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical">
                     <androidx.cardview.widget.CardView android:layout_width="50dp" android:layout_height="50dp" app:cardCornerRadius="12dp"><ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:padding="8dp" android:src="@drawable/tennis" /></androidx.cardview.widget.CardView>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tennis" android:textSize="11sp" />
                 </LinearLayout>
-
-                <LinearLayout android:id="@+id/btnVolleyball" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true">
+                <LinearLayout android:id="@+id/btnFilterVolleyball" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical">
                     <androidx.cardview.widget.CardView android:layout_width="50dp" android:layout_height="50dp" app:cardCornerRadius="12dp"><ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:padding="8dp" android:src="@drawable/volleyball" /></androidx.cardview.widget.CardView>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="B.Chuyền" android:textSize="11sp" />
                 </LinearLayout>
-
-                <LinearLayout android:id="@+id/btnBasketball" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true">
+                <LinearLayout android:id="@+id/btnFilterBasketball" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical">
                     <androidx.cardview.widget.CardView android:layout_width="50dp" android:layout_height="50dp" app:cardCornerRadius="12dp"><ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:padding="8dp" android:src="@drawable/basketball" /></androidx.cardview.widget.CardView>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Bóng rổ" android:textSize="11sp" />
                 </LinearLayout>
             </GridLayout>
 
-            <!-- 4. Dynamic List Section -->
+            <!-- 4. Suggested Courts (Dynamic with RecyclerView) -->
             <TextView
-                android:id="@+id/tvHomeListTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="20dp"

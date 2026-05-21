@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -16,62 +17,72 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
+import java.util.ArrayList;
+import java.util.List;
 import huce.fit.myapplication.adapter.FieldAdapter;
+import huce.fit.myapplication.objects.Venue;
 import huce.fit.myapplication.viewmodel.HomeViewModel;
 
 public class HomeActivity extends Fragment {
-    private TextView tvFullName, tvSuggestedTitle;
+    private TextView tvFullName;
     private MaterialButton btnHomeLogin, btnHomeRegister; 
     private LinearLayout layoutAuthButtons;
     private RecyclerView rvFields;
     private FieldAdapter fieldAdapter;
     private HomeViewModel homeViewModel;
-
-    // Khai báo các nút môn thể thao
-    private LinearLayout btnPickleball, btnBadminton, btnFootball, btnTennis, btnVolleyball, btnBasketball;
+    private List<Venue> fullVenueList = new ArrayList<>();
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.home, container, false);
 
-        // 1. Ánh xạ UI cơ bản (Sửa ID tvHomeListTitle cho khớp XML)
+        // 1. Ánh xạ UI
         rvFields = view.findViewById(R.id.rvFields);
-        tvSuggestedTitle = view.findViewById(R.id.tvHomeListTitle); 
         btnHomeLogin = view.findViewById(R.id.btnHomeLogin);
         btnHomeRegister = view.findViewById(R.id.btnHomeRegister);
         layoutAuthButtons = view.findViewById(R.id.layoutAuthButtons);
         tvFullName = view.findViewById(R.id.tvUserName);
 
-        // 2. Ánh xạ các nút môn thể thao (Sửa ID cho khớp XML)
-        btnPickleball = view.findViewById(R.id.btnPickleball);
-        btnBadminton = view.findViewById(R.id.btnBadminton);
-        btnFootball = view.findViewById(R.id.btnFootball);
-        btnTennis = view.findViewById(R.id.btnTennis);
-        btnVolleyball = view.findViewById(R.id.btnVolleyball);
-        btnBasketball = view.findViewById(R.id.btnBasketball);
-
-        // 3. Thiết lập RecyclerView
+        // 2. Thiết lập RecyclerView
         fieldAdapter = new FieldAdapter();
         rvFields.setLayoutManager(new LinearLayoutManager(getActivity()));
         rvFields.setAdapter(fieldAdapter);
         rvFields.setNestedScrollingEnabled(false);
 
-        // 4. Kết nối MVVM
+        // 3. Kết nối MVVM và Lắng nghe dữ liệu
         homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
-        homeViewModel.getFields().observe(getViewLifecycleOwner(), venues -> {
-            if (venues != null) {
-                fieldAdapter.setFields(venues);
+        homeViewModel.getFields().observe(getViewLifecycleOwner(), fields -> {
+            if (fields != null) {
+                fullVenueList = fields;
+                fieldAdapter.setFields(fields);
             }
         });
 
-        // Tải dữ liệu ban đầu từ Firebase
+        // 4. Gọi lệnh tải dữ liệu
         homeViewModel.fetchFieldsFromFirebase();
 
-        // 5. Thiết lập sự kiện Click cho các nút môn thể thao
-        setupFilterButtons();
+        // 5. Khôi phục chức năng lọc theo môn thể thao
+        setupSportFilters(view);
 
-        // Các sự kiện Auth
+        // 6. Sự kiện Click cho từng sân
+        fieldAdapter.setOnFieldClickListener(new FieldAdapter.OnFieldClickListener() {
+            @Override
+            public void onBookClick(Venue venue) {
+                Intent intent = new Intent(getActivity(), BookingActivity.class);
+                intent.putExtra("selected_venue", venue);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onItemClick(Venue venue) {
+                Intent intent = new Intent(getActivity(), BookingActivity.class);
+                intent.putExtra("selected_venue", venue);
+                startActivity(intent);
+            }
+        });
+
+        // 7. Auth buttons
         if (btnHomeLogin != null) btnHomeLogin.setOnClickListener(v -> startActivity(new Intent(getActivity(), LoginActivity.class)));
         if (btnHomeRegister != null) btnHomeRegister.setOnClickListener(v -> startActivity(new Intent(getActivity(), SignUpActivity.class)));
 
@@ -79,31 +90,36 @@ public class HomeActivity extends Fragment {
         return view;
     }
 
-    private void setupFilterButtons() {
-        View.OnClickListener filterListener = v -> {
-            String sport = "";
-            int id = v.getId();
-            if (id == R.id.btnPickleball) sport = "Pickleball";
-            else if (id == R.id.btnBadminton) sport = "Cầu lông";
-            else if (id == R.id.btnFootball) sport = "Bóng đá";
-            else if (id == R.id.btnTennis) sport = "Tennis";
-            else if (id == R.id.btnVolleyball) sport = "Bóng chuyền";
-            else if (id == R.id.btnBasketball) sport = "Bóng rổ";
+    private void setupSportFilters(View view) {
+        View btnPickleball = view.findViewById(R.id.btnFilterPickleball);
+        View btnBadminton = view.findViewById(R.id.btnFilterBadminton);
+        View btnFootball = view.findViewById(R.id.btnFilterFootball);
+        View btnTennis = view.findViewById(R.id.btnFilterTennis);
+        View btnVolleyball = view.findViewById(R.id.btnFilterVolleyball);
+        View btnBasketball = view.findViewById(R.id.btnFilterBasketball);
 
-            // Cập nhật tiêu đề hiển thị
-            if (tvSuggestedTitle != null) {
-                tvSuggestedTitle.setText("Danh sách sân " + sport);
+        if (btnPickleball != null) btnPickleball.setOnClickListener(v -> filterBySport("Pickleball"));
+        if (btnBadminton != null) btnBadminton.setOnClickListener(v -> filterBySport("Cầu lông"));
+        if (btnFootball != null) btnFootball.setOnClickListener(v -> filterBySport("Bóng đá"));
+        if (btnTennis != null) btnTennis.setOnClickListener(v -> filterBySport("Tennis"));
+        if (btnVolleyball != null) btnVolleyball.setOnClickListener(v -> filterBySport("Bóng chuyền"));
+        if (btnBasketball != null) btnBasketball.setOnClickListener(v -> filterBySport("Bóng rổ"));
+    }
+
+    private void filterBySport(String sportName) {
+        if (fullVenueList == null) return;
+        List<Venue> filtered = new ArrayList<>();
+        for (Venue venue : fullVenueList) {
+            if (venue.getSport_name() != null && venue.getSport_name().toLowerCase().contains(sportName.toLowerCase())) {
+                filtered.add(venue);
             }
-            // Gọi ViewModel để lọc dữ liệu
-            homeViewModel.filterBySport(sport);
-        };
-
-        if (btnPickleball != null) btnPickleball.setOnClickListener(filterListener);
-        if (btnBadminton != null) btnBadminton.setOnClickListener(filterListener);
-        if (btnFootball != null) btnFootball.setOnClickListener(filterListener);
-        if (btnTennis != null) btnTennis.setOnClickListener(filterListener);
-        if (btnVolleyball != null) btnVolleyball.setOnClickListener(filterListener);
-        if (btnBasketball != null) btnBasketball.setOnClickListener(filterListener);
+        }
+        fieldAdapter.setFields(filtered);
+        if (filtered.isEmpty()) {
+            Toast.makeText(getActivity(), "Không tìm thấy sân " + sportName, Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getActivity(), "Đang hiện: " + sportName, Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
