@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="50dp"
+    android:orientation="horizontal">
+
+    <!-- Tên sân (Cột cố định giả lập) -->
+    <TextView
+        android:id="@+id/tvCourtNameRow"
+        android:layout_width="70dp"
+        android:layout_height="match_parent"
+        android:background="@drawable/custom_edittext"
+        android:gravity="center"
+        android:text="Sân 1"
+        android:textColor="@color/black"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <!-- Container chứa các ô thời gian -->
+    <LinearLayout
+        android:id="@+id/layoutTimeSlots"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="horizontal" />
+</LinearLayout>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F0F9F4"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <!-- Header Discovery (Ưu đãi) -->
+    <TextView
+        android:id="@+id/tvTitleOffers"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="26dp"
+        android:layout_marginTop="36dp"
+        android:text="ƯU ĐÃI"
+        android:textColor="#09A459"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Filter Tabs -->
+    <LinearLayout
+        android:id="@+id/layoutFiltersOffers"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvTitleOffers">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOffersAll"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:text="Tất cả"
+            android:textAllCaps="false"
+            android:textColor="@color/black"
+            android:textSize="12sp"
+            app:cornerRadius="16dp"
+            app:strokeColor="#DDDDDD" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOfferActive"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:backgroundTint="#09A459"
+            android:text="Ưu đãi"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            app:cornerRadius="16dp"
+            app:icon="@android:drawable/ic_menu_agenda"
+            app:iconSize="14dp"
+            app:iconTint="@color/white" />
+    </LinearLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutFiltersOffers">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="40dp"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <!-- RecyclerView để đổ dữ liệu các sân có ưu đãi -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvOffersFields"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:overScrollMode="never" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
