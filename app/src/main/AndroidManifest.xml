@@ -10,18 +10,19 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
-
+        <activity
+            android:name=".ForgotPasswordActivity"
+            android:exported="false" />
         <!-- Màn hình chính điều phối các Fragment -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <!-- Các Activity thực thụ -->
+        </activity> <!-- Các Activity thực thụ -->
         <activity android:name=".LoginActivity" />
         <activity android:name=".SignUpActivity" />
         <activity android:name=".BookingActivity" />
@@ -33,10 +34,6 @@
         <activity android:name=".MovieActivity" />
         <activity android:name=".AddMovieActivity" />
         <activity android:name=".SplashScreenActivity" />
-
-        <!-- LƯU Ý: HomeActivity, DiscoveryActivity, OffersActivity, ProfileActivity 
-             đã được chuyển thành Fragment nên không khai báo là Activity ở đây -->
-
     </application>
 
 </manifest>

@@ -38,6 +38,8 @@ public class LoginActivity extends AppCompatActivity {
 
         btnLogin = findViewById(R.id.btnLogin);
         btnSignup = findViewById(R.id.btnSignup);
+        TextView tvForgotPassword =
+                findViewById(R.id.tvForgotPassword);
         edEmail = findViewById(R.id.edUsername); // Lưu ý: Trong layout của bạn ID có thể vẫn là edUsername nhưng ta dùng để nhập Email
         edPassword = findViewById(R.id.edPassword);
 
@@ -83,5 +85,14 @@ public class LoginActivity extends AppCompatActivity {
         if (btnSignup != null) {
             btnSignup.setOnClickListener(v -> startActivity(new Intent(this, SignUpActivity.class)));
         }
+        tvForgotPassword.setOnClickListener(v -> {
+
+            Intent intent = new Intent(
+                    LoginActivity.this,
+                    ForgotPasswordActivity.class
+            );
+
+            startActivity(intent);
+        });
     }
 }
