@@ -7,9 +7,13 @@ import huce.fit.myapplication.objects.AdminAccount;
 
 @Dao
 public interface AdminAccountDao {
+    @Query("SELECT * FROM admin_accounts WHERE id = :id")
+    AdminAccount getAccountById(int id);
     @Insert
     void insert(AdminAccount account);
 
     @Query("SELECT * FROM admin_accounts WHERE username = :username AND password = :password")
     AdminAccount login(String username, String password);
+
+
 }
