@@ -14,6 +14,7 @@ public class Booking implements Serializable {
     private long total_price_snapshot;
     private int status; // 1: active, 0: cancelled
     private long created_at;
+    private Map<String, Integer> selected_services; // THÊM BIẾN NÀY
 
     public Booking() {}
 
@@ -46,4 +47,13 @@ public class Booking implements Serializable {
 
     public long getCreated_at() { return created_at; }
     public void setCreated_at(long created_at) { this.created_at = created_at; }
+
+    // THÊM GETTER VÀ SETTER
+    public Map<String, Integer> getSelected_services() {
+        return selected_services;
+    }
+
+    public void setSelected_services(Map<String, Integer> selected_services) {
+        this.selected_services = selected_services;
+    }
 }

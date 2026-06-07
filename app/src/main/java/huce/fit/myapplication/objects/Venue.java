@@ -16,7 +16,8 @@ public class Venue implements Serializable {
     private int status; 
     private Map<String, VenuePrice> venue_prices;
     private List<VenueImage> images;
-    private Map<String, Court> courts; // THÊM TRƯỜNG COURTS
+    private Map<String, Court> courts;
+    private Map<String, Service> services; // THÊM TRƯỜNG SERVICES
 
     public Venue() {}
 
@@ -92,4 +93,7 @@ public class Venue implements Serializable {
 
     public Map<String, Court> getCourts() { return courts; }
     public void setCourts(Map<String, Court> courts) { this.courts = courts; }
+
+    public Map<String, Service> getServices() { return services; }
+    public void setServices(Map<String, Service> services) { this.services = services; }
 }
