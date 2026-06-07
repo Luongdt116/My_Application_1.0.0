@@ -15,5 +15,6 @@ public interface AdminAccountDao {
     @Query("SELECT * FROM admin_accounts WHERE username = :username AND password = :password")
     AdminAccount login(String username, String password);
 
-
+    @Query("UPDATE admin_accounts SET password = :newPassword WHERE id = :id")
+    void updatePassword(int id, String newPassword);
 }
