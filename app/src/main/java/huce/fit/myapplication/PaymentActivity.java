@@ -74,11 +74,11 @@ public class PaymentActivity extends AppCompatActivity {
         tvDate = findViewById(R.id.tvPaymentDate);
         tvDetail = findViewById(R.id.tvPaymentDetail);
         tvTotalPrice = findViewById(R.id.tvPaymentTotalPrice);
-        
+
         etName = findViewById(R.id.etPaymentName);
         etPhone = findViewById(R.id.etPaymentPhone);
         etNote = findViewById(R.id.etPaymentNote);
-        
+
         btnConfirm = findViewById(R.id.btnConfirmPayment);
         btnBack = findViewById(R.id.btnBackPayment);
 
@@ -113,7 +113,7 @@ public class PaymentActivity extends AppCompatActivity {
                     handler.post(() -> Toast.makeText(PaymentActivity.this, "Lỗi kết nối server ZaloPay", Toast.LENGTH_SHORT).show());
                     return;
                 }
-                
+
                 Log.d("ZaloPay_Debug", "Response: " + data.toString());
                 String code = data.getString("return_code");
 
@@ -123,7 +123,7 @@ public class PaymentActivity extends AppCompatActivity {
                             String token = data.getString("zp_trans_token");
                             // Sử dụng APP_ID từ Constant để xây dựng Redirect URL động
                             String backUrl = "zp-redirect-" + ZaloPayConstant.APP_ID + "://app";
-                            
+
                             ZaloPaySDK.getInstance().payOrder(PaymentActivity.this, token, backUrl, new PayOrderListener() {
                                 @Override
                                 public void onPaymentSucceeded(String transactionId, String transToken, String appTransID) {
@@ -158,7 +158,7 @@ public class PaymentActivity extends AppCompatActivity {
     private void saveBookingsToFirebase(String transactionId) {
         String userId = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "GUEST";
         long now = System.currentTimeMillis();
-        
+
         String[] dateParts = selectedDate.split("/");
         String firebaseDate = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0];
 
@@ -198,7 +198,7 @@ public class PaymentActivity extends AppCompatActivity {
             paymentInfo.put("payment_status", 1);
             paymentInfo.put("amount", totalPrice / selectedSlots.size());
             paymentInfo.put("paid_at", now);
-            
+
             bookingData.put("payment_info", paymentInfo);
 
             mDatabase.child("Bookings").push().setValue(bookingData);

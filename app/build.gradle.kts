@@ -38,6 +38,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.firebase.database)
+    implementation(libs.constraintlayout)
     implementation(fileTree(mapOf(
         "dir" to "D:\\Download\\APPcode\\BTN_AppMobile",
         "include" to listOf("*.aar", "*.jar"),

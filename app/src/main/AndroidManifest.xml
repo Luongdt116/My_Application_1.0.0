@@ -21,11 +21,6 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".LoginActivity" />
-        <activity android:name=".SignUpActivity" />
-        <activity android:name=".BookingActivity" />
-        
-        <!-- Cấu hình PaymentActivity để nhận phản hồi từ ZaloPay với AppID 2554 -->
         <activity 
             android:name=".PaymentActivity"
             android:exported="true"
@@ -34,15 +29,20 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <!-- Scheme: zp-redirect-[AppID] -->
                 <data android:scheme="zp-redirect-2554" />
             </intent-filter>
         </activity>
 
+        <activity android:name=".ForgotPasswordActivity" android:exported="false" />
+        <activity android:name=".LoginActivity" />
+        <activity android:name=".SignUpActivity" />
+        <activity android:name=".BookingActivity" />
         <activity android:name=".HistoryActivity" />
         <activity android:name=".LicenseActivity" />
         <activity android:name=".EditProfileActivity" />
         <activity android:name=".ChangePasswordActivity" />
+        <activity android:name=".MovieActivity" />
+        <activity android:name=".AddMovieActivity" />
         <activity android:name=".SplashScreenActivity" />
 
     </application>
