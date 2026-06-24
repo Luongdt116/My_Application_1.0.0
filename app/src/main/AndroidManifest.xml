@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
@@ -11,7 +12,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
 
-        <!-- Màn hình chính điều phối các Fragment -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -21,11 +21,22 @@
             </intent-filter>
         </activity>
 
-        <!-- Các Activity thực thụ -->
+        <activity 
+            android:name=".PaymentActivity"
+            android:exported="true"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="zp-redirect-2554" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".ForgotPasswordActivity" android:exported="false" />
         <activity android:name=".LoginActivity" />
         <activity android:name=".SignUpActivity" />
         <activity android:name=".BookingActivity" />
-        <activity android:name=".PaymentActivity" />
         <activity android:name=".HistoryActivity" />
         <activity android:name=".LicenseActivity" />
         <activity android:name=".EditProfileActivity" />
@@ -33,9 +44,6 @@
         <activity android:name=".MovieActivity" />
         <activity android:name=".AddMovieActivity" />
         <activity android:name=".SplashScreenActivity" />
-
-        <!-- LƯU Ý: HomeActivity, DiscoveryActivity, OffersActivity, ProfileActivity 
-             đã được chuyển thành Fragment nên không khai báo là Activity ở đây -->
 
     </application>
 
