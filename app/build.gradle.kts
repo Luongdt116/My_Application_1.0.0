@@ -38,11 +38,6 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.firebase.database)
-    implementation(fileTree(mapOf(
-        "dir" to "D:\\Download\\APPcode\\BTN_AppMobile",
-        "include" to listOf("*.aar", "*.jar"),
-        "exclude" to listOf("")
-    )))
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
@@ -56,7 +51,4 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     
     implementation("androidx.recyclerview:recyclerview:1.4.0")
-
-    implementation("com.squareup.okhttp3:okhttp:4.6.0")
-    implementation("commons-codec:commons-codec:1.14")
 }

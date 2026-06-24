@@ -1,11 +1,13 @@
 package huce.fit.myapplication.objects;
 
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+@Entity(tableName = "levels")
 public class Level {
+    @PrimaryKey(autoGenerate = true)
     private int levelId;
     private String levelName;
-
-    public Level() {
-    }
 
     public Level(String levelName) {
         this.levelName = levelName;

@@ -16,8 +16,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -27,15 +25,11 @@ import com.google.firebase.database.ValueEventListener;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import huce.fit.myapplication.adapter.CourtBookingAdapter;
-import huce.fit.myapplication.adapter.ServiceAdapter;
 import huce.fit.myapplication.objects.Booking;
 import huce.fit.myapplication.objects.Court;
-import huce.fit.myapplication.objects.Service;
 import huce.fit.myapplication.objects.Venue;
 
 public class BookingActivity extends AppCompatActivity {
@@ -96,6 +90,7 @@ public class BookingActivity extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser) {
+                    // Tính toán vị trí cuộn: (Tiến trình / 100) * (Chiều rộng nội dung - Chiều rộng màn hình)
                     if (hsvBookingTable.getChildAt(0) != null) {
                         int maxScrollX = hsvBookingTable.getChildAt(0).getWidth() - hsvBookingTable.getWidth();
                         if (maxScrollX > 0) {
@@ -146,67 +141,17 @@ public class BookingActivity extends AppCompatActivity {
                 Toast.makeText(this, "Vui lòng chọn ít nhất một ca đánh!", Toast.LENGTH_SHORT).show();
                 return;
             }
-            // Mở Bottom Sheet chọn dịch vụ thay vì đi thẳng tới Payment
-            showServicesBottomSheet(selected);
+
+            Intent intent = new Intent(BookingActivity.this, PaymentActivity.class);
+            intent.putExtra("selected_venue", selectedVenue);
+            intent.putExtra("selected_date", tvSelectedDate.getText().toString());
+            // Truyền danh sách các ca đã chọn
+            intent.putExtra("selected_slots", (Serializable) new ArrayList<>(selected));
+            intent.putExtra("total_price", selected.size() * unitPrice);
+            startActivity(intent);
         });
 
         loadData();
-    }
-
-    private void showServicesBottomSheet(Set<String> selectedSlots) {
-        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
-        View view = getLayoutInflater().inflate(R.layout.layout_bottom_sheet_services, null);
-        bottomSheetDialog.setContentView(view);
-
-        RecyclerView rvServices = view.findViewById(R.id.rvServices);
-        TextView tvServiceTotal = view.findViewById(R.id.tvServiceTotal);
-        MaterialButton btnConfirm = view.findViewById(R.id.btnConfirmServices);
-
-        final long[] serviceTotalAmount = {0};
-        
-        // Setup Service Adapter
-        if (selectedVenue.getServices() != null && !selectedVenue.getServices().isEmpty()) {
-            ServiceAdapter serviceAdapter = new ServiceAdapter(selectedVenue.getServices(), selectedServices -> {
-                serviceTotalAmount[0] = 0;
-                for (Map.Entry<String, Integer> entry : selectedServices.entrySet()) {
-                    Service s = selectedVenue.getServices().get(entry.getKey());
-                    if (s != null) {
-                        serviceTotalAmount[0] += s.getPrice() * entry.getValue();
-                    }
-                }
-                tvServiceTotal.setText(String.format("%,dđ", serviceTotalAmount[0]));
-            });
-            rvServices.setLayoutManager(new LinearLayoutManager(this));
-            rvServices.setAdapter(serviceAdapter);
-
-            btnConfirm.setOnClickListener(v -> {
-                bottomSheetDialog.dismiss();
-                navigateToPayment(selectedSlots, serviceAdapter.getSelectedServices(), serviceTotalAmount[0]);
-            });
-        } else {
-            // Trường hợp không có dịch vụ
-            rvServices.setVisibility(View.GONE);
-            tvServiceTotal.setText("0đ");
-            btnConfirm.setOnClickListener(v -> {
-                bottomSheetDialog.dismiss();
-                navigateToPayment(selectedSlots, new HashMap<>(), 0);
-            });
-        }
-
-        bottomSheetDialog.show();
-    }
-
-    private void navigateToPayment(Set<String> selectedSlots, Map<String, Integer> services, long serviceFee) {
-        long courtTotal = selectedSlots.size() * unitPrice;
-        long finalTotal = courtTotal + serviceFee;
-
-        Intent intent = new Intent(BookingActivity.this, PaymentActivity.class);
-        intent.putExtra("selected_venue", selectedVenue);
-        intent.putExtra("selected_date", tvSelectedDate.getText().toString());
-        intent.putExtra("selected_slots", (Serializable) new ArrayList<>(selectedSlots));
-        intent.putExtra("selected_services", (Serializable) services);
-        intent.putExtra("total_price", finalTotal);
-        startActivity(intent);
     }
 
     private void loadData() {
