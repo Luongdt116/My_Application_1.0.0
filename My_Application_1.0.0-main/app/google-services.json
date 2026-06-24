@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "622363655331",
+    "firebase_url": "https://app-moblie-131d8-default-rtdb.firebaseio.com",
+    "project_id": "app-moblie-131d8",
+    "storage_bucket": "app-moblie-131d8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:622363655331:android:b2e4126732af5e936a9316",
+        "android_client_info": {
+          "package_name": "huce.fit.myapplication"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6o834Dt2ZqSTQU-stDYYodHKJd31bcR4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
