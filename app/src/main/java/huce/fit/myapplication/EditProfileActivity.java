@@ -28,10 +28,7 @@ public class EditProfileActivity extends AppCompatActivity {
         // Nút Hủy dưới footer
         btnCancel.setOnClickListener(v -> finish());
 
-        // Nút Lưu (Tạm thời đóng activity)
         btnSave.setOnClickListener(v -> {
-            // Logic lưu dữ liệu vào DB sẽ thêm tại đây
             finish();
-        });
     }
 }
