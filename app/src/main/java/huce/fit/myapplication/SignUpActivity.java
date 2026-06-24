@@ -1,7 +1,6 @@
 package huce.fit.myapplication;
 
 import android.app.AlertDialog;
-import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -12,10 +11,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import huce.fit.myapplication.database.UserDatabaseHelper;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class SignUpActivity extends AppCompatActivity {
     // 1. Khai báo các biến UI
@@ -23,18 +28,20 @@ public class SignUpActivity extends AppCompatActivity {
     private Button btnSignupAction;
     private TextView btnLoginRedirect;
 
-    private UserDatabaseHelper dbHelper;
+    private FirebaseAuth mAuth;
+    private DatabaseReference mDatabase;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.signup_activity);
 
-        // 2. Khởi tạo Database
-        dbHelper = new UserDatabaseHelper(this);
+        // 2. Khởi tạo Firebase
+        mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        // 3. Ánh xạ ID từ XML (Hãy chắc chắn file signup_activity.xml đã có id: edEmail)
-        edUsername = findViewById(R.id.edUsername);
+        // 3. Ánh xạ ID từ XML
+        edUsername = findViewById(R.id.edUsername); // Sử dụng làm Họ tên (Full Name)
         edEmail = findViewById(R.id.edEmail);
         edPassword = findViewById(R.id.edPassword);
         edRepassword = findViewById(R.id.edRepassword);
@@ -59,25 +66,42 @@ public class SignUpActivity extends AppCompatActivity {
                 return;
             }
 
-            // Kiểm tra trùng username
-            if (dbHelper.checkUsername(fullName)) {
-                edUsername.setError("Tên đăng nhập đã tồn tại!");
+            if (password.length() < 6) {
+                edPassword.setError("Mật khẩu phải từ 6 ký tự trở lên!");
                 return;
             }
 
-            // Kiểm tra trùng email
-            if (dbHelper.checkEmail(email)) {
-                edEmail.setError("Email đã được sử dụng!");
-                return;
-            }
+            // Thực hiện đăng ký bằng Firebase Auth
+            btnSignupAction.setEnabled(false); // Tránh bấm nhiều lần
+            mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        // Lấy UID vừa tạo
+                        String userId = mAuth.getCurrentUser().getUid();
 
-            // Lưu người dùng vào database
-            boolean success = dbHelper.insertUser(fullName, email, password);
-            if (success) {
-                showSuccessDialog();
-            } else {
-                Toast.makeText(this, "Đăng ký thất bại, vui lòng thử lại", Toast.LENGTH_SHORT).show();
-            }
+                        // Tạo Object thông tin người dùng để lưu vào Realtime Database
+                        Map<String, Object> userMap = new HashMap<>();
+                        userMap.put("full_name", fullName);
+                        userMap.put("email", email);
+                        userMap.put("role", 1); // 1: Người dùng (theo cấu trúc chốt gần nhất)
+                        userMap.put("status", 1); // 1: Active
+                        userMap.put("created_at", System.currentTimeMillis());
+
+                        // Lưu vào node Accounts/{userId}
+                        mDatabase.child("Accounts").child(userId).setValue(userMap)
+                            .addOnSuccessListener(aVoid -> {
+                                showSuccessDialog();
+                            })
+                            .addOnFailureListener(e -> {
+                                btnSignupAction.setEnabled(true);
+                                Toast.makeText(this, "Lỗi lưu dữ liệu: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
+                    } else {
+                        btnSignupAction.setEnabled(true);
+                        String error = task.getException() != null ? task.getException().getMessage() : "Đăng ký thất bại";
+                        Toast.makeText(this, "Lỗi: " + error, Toast.LENGTH_LONG).show();
+                    }
+                });
         });
 
         btnLoginRedirect.setOnClickListener(v -> finish());
@@ -89,7 +113,7 @@ public class SignUpActivity extends AppCompatActivity {
         TextView tvMessage = dialogView.findViewById(R.id.tvMessage);
         Button btnOk = dialogView.findViewById(R.id.btnOk);
 
-        imgTick.setImageResource(R.drawable.logo);
+        if (imgTick != null) imgTick.setImageResource(R.drawable.logo);
         tvMessage.setText("Đã đăng ký thành công, mời bạn đăng nhập");
 
         AlertDialog dialog = new AlertDialog.Builder(this)

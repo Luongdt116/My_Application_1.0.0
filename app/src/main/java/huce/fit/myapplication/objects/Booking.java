@@ -6,6 +6,7 @@ import java.util.Map;
 public class Booking implements Serializable {
     private String account_id;
     private String venue_id;
+    private String venue_name; // THÊM TRƯỜNG NÀY
     private String court_id;
     private String court_name;
     private String booking_date;
@@ -14,9 +15,17 @@ public class Booking implements Serializable {
     private long total_price_snapshot;
     private int status; // 1: active, 0: cancelled
     private long created_at;
-    private Map<String, Integer> selected_services; // THÊM BIẾN NÀY
+    private Map<String, Integer> selected_services;
+    private String customer_name;
+    private String customer_phone;
+    private String note;
+    private Map<String, Object> payment_info;
 
     public Booking() {}
+
+    // Getter và Setter cho venue_name
+    public String getVenue_name() { return venue_name; }
+    public void setVenue_name(String venue_name) { this.venue_name = venue_name; }
 
     public String getAccount_id() { return account_id; }
     public void setAccount_id(String account_id) { this.account_id = account_id; }
@@ -48,12 +57,18 @@ public class Booking implements Serializable {
     public long getCreated_at() { return created_at; }
     public void setCreated_at(long created_at) { this.created_at = created_at; }
 
-    // THÊM GETTER VÀ SETTER
-    public Map<String, Integer> getSelected_services() {
-        return selected_services;
-    }
+    public Map<String, Integer> getSelected_services() { return selected_services; }
+    public void setSelected_services(Map<String, Integer> selected_services) { this.selected_services = selected_services; }
 
-    public void setSelected_services(Map<String, Integer> selected_services) {
-        this.selected_services = selected_services;
-    }
+    public String getCustomer_name() { return customer_name; }
+    public void setCustomer_name(String customer_name) { this.customer_name = customer_name; }
+
+    public String getCustomer_phone() { return customer_phone; }
+    public void setCustomer_phone(String customer_phone) { this.customer_phone = customer_phone; }
+
+    public String getNote() { return note; }
+    public void setNote(String note) { this.note = note; }
+
+    public Map<String, Object> getPayment_info() { return payment_info; }
+    public void setPayment_info(Map<String, Object> payment_info) { this.payment_info = payment_info; }
 }

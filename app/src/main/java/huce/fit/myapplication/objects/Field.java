@@ -1,19 +1,19 @@
 package huce.fit.myapplication.objects;
 
-import androidx.room.Entity;
-import androidx.room.PrimaryKey;
 import java.io.Serializable;
 
-@Entity(tableName = "fields") // Tên bảng trong SQLite
 public class Field implements Serializable {
-    @PrimaryKey(autoGenerate = true)
     private int id;
-    
     private String name;
     private String location;
     private String type; // Loại sân (Bóng đá, Cầu lông,...)
     private int imageResId; // ID ảnh trong drawable
 
+    // 1. Constructor mặc định (Bắt buộc cho Firebase)
+    public Field() {
+    }
+
+    // 2. Constructor có tham số
     public Field(String name, String location, String type, int imageResId) {
         this.name = name;
         this.location = location;
@@ -21,7 +21,7 @@ public class Field implements Serializable {
         this.imageResId = imageResId;
     }
 
-    // Getter và Setter cần thiết cho Room
+    // 3. Getter và Setter
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 

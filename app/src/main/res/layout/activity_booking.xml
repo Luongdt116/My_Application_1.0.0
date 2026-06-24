@@ -14,19 +14,21 @@
         app:layout_constraintTop_toTopOf="parent">
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="30dp"
+            android:layout_height="match_parent">
             <ImageView
                 android:id="@+id/btnBackBooking"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
                 android:src="@android:drawable/ic_menu_revert"
-                app:tint="@color/white" />
+                app:tint="@color/white"
+                android:contentDescription="Back" />
             <TextView
+                android:id="@+id/tvVenueNameBooking"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
+                android:text="Đặt lịch"
                 android:textColor="@color/white"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -50,7 +52,7 @@
             android:layout_gravity="end"
             android:background="@drawable/custom_edittext"
             android:backgroundTint="#2E7D32"
-            android:drawableEnd="@android:drawable/ic_menu_my_calendar"
+            app:drawableEndCompat="@android:drawable/ic_menu_my_calendar"
             android:drawablePadding="8dp"
             android:paddingHorizontal="12dp"
             android:paddingVertical="4dp"
@@ -63,8 +65,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:orientation="horizontal">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="■ Trống" android:textColor="@color/white" android:textSize="10sp" android:layout_marginEnd="8dp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="■ Đã đặt" android:textColor="#E53935" android:textSize="10sp" android:layout_marginEnd="8dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="■ Trống" android:textColor="@color/white" android:textSize="11sp" android:layout_marginEnd="8dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="■ Đã đặt" android:textColor="#E53935" android:textSize="11sp" android:layout_marginEnd="8dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="■ Đang chọn" android:textColor="#FF9800" android:textSize="11sp" android:layout_marginEnd="8dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="■ Khóa" android:textColor="#757575" android:textSize="11sp" />
         </LinearLayout>
     </LinearLayout>
 
@@ -73,30 +77,70 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="8dp"
+        android:text="Lưu ý: Liên hệ Admin để đặt lịch cố định"
         android:textColor="#D32F2F"
         android:textSize="11sp"
         android:background="#FFEBEE"
         app:layout_constraintTop_toBottomOf="@id/layoutHeaderInfo"/>
 
     <!-- Booking Table Section -->
+    <HorizontalScrollView
+        android:id="@+id/hsvBookingTable"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:fillViewport="true"
+        android:scrollbars="none"
         app:layout_constraintBottom_toTopOf="@id/zoomSlider"
         app:layout_constraintTop_toBottomOf="@id/tvWarning">
 
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <!-- Dòng tiêu đề giờ (Header của bảng) -->
             <LinearLayout
                 android:layout_width="wrap_content"
-                android:orientation="vertical">
-
-                    android:layout_width="wrap_content"
-
+                android:layout_height="30dp"
+                android:orientation="horizontal"
+                android:background="#EEEEEE">
+                <View android:layout_width="70dp" android:layout_height="match_parent" />
+                <TextView android:layout_width="220dp" android:layout_height="match_parent" android:text="5h-6h" android:gravity="center" android:textSize="10sp" android:textColor="@color/black"/>
+                <TextView android:layout_width="220dp" android:layout_height="match_parent" android:text="6h-7h" android:gravity="center" android:textSize="10sp" android:textColor="@color/black"/>
+                <TextView android:layout_width="220dp" android:layout_height="match_parent" android:text="7h-8h" android:gravity="center" android:textSize="10sp" android:textColor="@color/black"/>
+                <TextView android:layout_width="220dp" android:layout_height="match_parent" android:text="8h-9h" android:gravity="center" android:textSize="10sp" android:textColor="@color/black"/>
+                <TextView android:layout_width="220dp" android:layout_height="match_parent" android:text="9h-10h" android:gravity="center" android:textSize="10sp" android:textColor="@color/black"/>
+                <TextView android:layout_width="220dp" android:layout_height="match_parent" android:text="10h-11h" android:gravity="center" android:textSize="10sp" android:textColor="@color/black"/>
+                <TextView android:layout_width="220dp" android:layout_height="match_parent" android:text="11h-12h" android:gravity="center" android:textSize="10sp" android:textColor="@color/black"/>
+                <TextView android:layout_width="220dp" android:layout_height="match_parent" android:text="12h-13h" android:gravity="center" android:textSize="10sp" android:textColor="@color/black"/>
+                <TextView android:layout_width="220dp" android:layout_height="match_parent" android:text="13h-14h" android:gravity="center" android:textSize="10sp" android:textColor="@color/black"/>
+                <TextView android:layout_width="220dp" android:layout_height="match_parent" android:text="14h-15h" android:gravity="center" android:textSize="10sp" android:textColor="@color/black"/>
+                <TextView android:layout_width="220dp" android:layout_height="match_parent" android:text="15h-16h" android:gravity="center" android:textSize="10sp" android:textColor="@color/black"/>
+                <TextView android:layout_width="220dp" android:layout_height="match_parent" android:text="16h-17h" android:gravity="center" android:textSize="10sp" android:textColor="@color/black"/>
+                <TextView android:layout_width="220dp" android:layout_height="match_parent" android:text="17h-18h" android:gravity="center" android:textSize="10sp" android:textColor="@color/black"/>
+                <TextView android:layout_width="220dp" android:layout_height="match_parent" android:text="18h-19h" android:gravity="center" android:textSize="10sp" android:textColor="@color/black"/>
+                <TextView android:layout_width="220dp" android:layout_height="match_parent" android:text="19h-20h" android:gravity="center" android:textSize="10sp" android:textColor="@color/black"/>
+                <TextView android:layout_width="220dp" android:layout_height="match_parent" android:text="20h-21h" android:gravity="center" android:textSize="10sp" android:textColor="@color/black"/>
+                <TextView android:layout_width="220dp" android:layout_height="match_parent" android:text="21h-22h" android:gravity="center" android:textSize="10sp" android:textColor="@color/black"/>
+                <TextView android:layout_width="220dp" android:layout_height="match_parent" android:text="22h-23h" android:gravity="center" android:textSize="10sp" android:textColor="@color/black"/>
             </LinearLayout>
-        </HorizontalScrollView>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvBookingCourts"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:overScrollMode="never" />
+
+        </LinearLayout>
+    </HorizontalScrollView>
 
     <SeekBar
         android:id="@+id/zoomSlider"
+        android:layout_width="240dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
+        android:max="100"
+        android:progress="0"
         app:layout_constraintBottom_toTopOf="@id/btnNext"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

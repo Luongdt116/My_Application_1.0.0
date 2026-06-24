@@ -1,43 +1,35 @@
 package huce.fit.myapplication.adapter;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.google.android.material.button.MaterialButton;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import huce.fit.myapplication.R;
-import huce.fit.myapplication.objects.Field;
+import huce.fit.myapplication.objects.Venue;
 
 public class FieldAdapter extends RecyclerView.Adapter<FieldAdapter.FieldViewHolder> {
 
-    private List<Field> fieldList = new ArrayList<>();
+    private List<Venue> venueList = new ArrayList<>();
     private OnFieldClickListener listener;
 
     public interface OnFieldClickListener {
-        void onBookClick(int position);
-        void onItemClick(int position);
+        void onBookClick(Venue venue);
+        void onItemClick(Venue venue);
     }
 
     public void setOnFieldClickListener(OnFieldClickListener listener) {
         this.listener = listener;
     }
 
-    public FieldAdapter() {
-        // Constructor rỗng phù hợp khi dùng Room LiveData
-    }
-
-    // Phương thức quan trọng để Room cập nhật dữ liệu mới cho Adapter
-    public void setFields(List<Field> fields) {
-        this.fieldList = fields;
+    public void setFields(List<Venue> venues) {
+        this.venueList = venues;
         notifyDataSetChanged();
     }
 
@@ -45,36 +37,43 @@ public class FieldAdapter extends RecyclerView.Adapter<FieldAdapter.FieldViewHol
     @Override
     public FieldViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_field, parent, false);
+                .inflate(R.layout.item_venue, parent, false);
         return new FieldViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull FieldViewHolder holder, int position) {
-        Field field = fieldList.get(position);
-        holder.tvFieldName.setText(field.getName());
-        holder.tvFieldLocation.setText(field.getLocation());
-        holder.imgField.setImageResource(field.getImageResId());
+        Venue venue = venueList.get(position);
+        
+        holder.tvFieldName.setText(venue.getVenue_name());
+        holder.tvFieldLocation.setText(venue.getAddress_detail());
+        holder.tvFieldPrice.setText("Giá từ: " + venue.getDisplayPrice());
+
+        // Xử lý ảnh
+        Context context = holder.itemView.getContext();
+        String imageName = venue.getLocalImageName();
+        int resId = context.getResources().getIdentifier(imageName, "drawable", context.getPackageName());
+        if (resId != 0) {
+            holder.imgField.setImageResource(resId);
+        } else {
+            holder.imgField.setImageResource(R.drawable.logo);
+        }
 
         holder.btnBook.setOnClickListener(v -> {
             if (listener != null) {
-                listener.onBookClick(position);
+                listener.onBookClick(venue);
             }
         });
     }
 
     @Override
     public int getItemCount() {
-        return fieldList != null ? fieldList.size() : 0;
-    }
-
-    public Field getFieldAt(int position) {
-        return fieldList.get(position);
+        return venueList != null ? venueList.size() : 0;
     }
 
     class FieldViewHolder extends RecyclerView.ViewHolder {
         ImageView imgField;
-        TextView tvFieldName, tvFieldLocation;
+        TextView tvFieldName, tvFieldLocation, tvFieldPrice;
         MaterialButton btnBook;
 
         public FieldViewHolder(@NonNull View itemView) {
@@ -82,12 +81,13 @@ public class FieldAdapter extends RecyclerView.Adapter<FieldAdapter.FieldViewHol
             imgField = itemView.findViewById(R.id.imgField);
             tvFieldName = itemView.findViewById(R.id.tvFieldName);
             tvFieldLocation = itemView.findViewById(R.id.tvFieldLocation);
+            tvFieldPrice = itemView.findViewById(R.id.tvFieldPrice);
             btnBook = itemView.findViewById(R.id.btnBook);
 
             itemView.setOnClickListener(v -> {
                 int position = getAdapterPosition();
                 if (listener != null && position != RecyclerView.NO_POSITION) {
-                    listener.onItemClick(position);
+                    listener.onItemClick(venueList.get(position));
                 }
             });
         }

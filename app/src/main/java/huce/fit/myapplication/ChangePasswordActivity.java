@@ -1,6 +1,7 @@
 package huce.fit.myapplication;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -8,15 +9,16 @@ import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import huce.fit.myapplication.database.AppDatabase;
-import huce.fit.myapplication.database.AdminAccountDao; // Đảm bảo đúng package database của bạn
-import huce.fit.myapplication.objects.AdminAccount;
+
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class ChangePasswordActivity extends AppCompatActivity {
 
     private EditText etCurrentPassword, etNewPassword, etConfirmNewPassword;
-    private AppDatabase db;
-    private int currentUserId = 1; // ID của tài khoản đang đăng nhập (bạn có thể nhận qua Intent hoặc SharedPreferences sau này)
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -27,7 +29,9 @@ public class ChangePasswordActivity extends AppCompatActivity {
             getSupportActionBar().hide();
         }
 
-        // 1. Ánh xạ các View từ XML giao diện của bạn
+        mAuth = FirebaseAuth.getInstance();
+
+        // 1. Ánh xạ các View từ XML
         ImageView btnBack = findViewById(R.id.btnBackChangePassword);
         Button btnCancel = findViewById(R.id.btnCancelChangePassword);
         Button btnSave = findViewById(R.id.btnSaveNewPassword);
@@ -35,9 +39,6 @@ public class ChangePasswordActivity extends AppCompatActivity {
         etCurrentPassword = findViewById(R.id.etCurrentPassword);
         etNewPassword = findViewById(R.id.etNewPassword);
         etConfirmNewPassword = findViewById(R.id.etConfirmNewPassword);
-
-        // Khởi tạo cơ sở dữ liệu
-        db = AppDatabase.getInstance(this);
 
         // Nút quay lại và nút Hủy
         if (btnBack != null) btnBack.setOnClickListener(v -> finish());
@@ -50,38 +51,51 @@ public class ChangePasswordActivity extends AppCompatActivity {
                 String newPass = etNewPassword.getText().toString().trim();
                 String confirmPass = etConfirmNewPassword.getText().toString().trim();
 
-                // Kiểm tra xem người dùng có bỏ trống ô nào không
-                if (currentPass.isEmpty() || newPass.isEmpty() || confirmPass.isEmpty()) {
-                    Toast.makeText(ChangePasswordActivity.this, "Vui lòng nhập đầy đủ thông tin bắt buộc (*)", Toast.LENGTH_SHORT).show();
+                // Kiểm tra dữ liệu đầu vào
+                if (TextUtils.isEmpty(currentPass) || TextUtils.isEmpty(newPass) || TextUtils.isEmpty(confirmPass)) {
+                    Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin bắt buộc (*)", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                // Lấy thông tin tài khoản hiện tại từ database lên để đối chiếu mật khẩu cũ
-                AdminAccount account = db.adminAccountDao().getAccountById(currentUserId);
+                if (!newPass.equals(confirmPass)) {
+                    Toast.makeText(this, "Mật khẩu mới nhập lại không khớp!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-                if (account != null) {
-                    // Kiểm tra xem mật khẩu hiện tại nhập vào có khớp với mật khẩu trong DB không
-                    if (!account.getPassword().equals(currentPass)) {
-                        Toast.makeText(ChangePasswordActivity.this, "Mật khẩu hiện tại không chính xác!", Toast.LENGTH_SHORT).show();
-                    }
-                    // Kiểm tra mật khẩu mới và mật khẩu nhập lại xem có trùng nhau không
-                    else if (!newPass.equals(confirmPass)) {
-                        Toast.makeText(ChangePasswordActivity.this, "Mật khẩu mới nhập lại không khớp!", Toast.LENGTH_SHORT).show();
-                    }
-                    // Kiểm tra nếu mật khẩu mới trùng lặp với mật khẩu cũ
-                    else if (newPass.equals(currentPass)) {
-                        Toast.makeText(ChangePasswordActivity.this, "Mật khẩu mới không được trùng với mật khẩu hiện tại!", Toast.LENGTH_SHORT).show();
-                    }
-                    // Nếu mọi điều kiện đều thỏa mãn -> Tiến hành cập nhật dữ liệu
-                    else {
-                        db.adminAccountDao().updatePassword(currentUserId, newPass);
-                        Toast.makeText(ChangePasswordActivity.this, "Thay đổi mật khẩu thành công!", Toast.LENGTH_SHORT).show();
-                        finish(); // Đóng màn hình đổi mật khẩu và quay lại trang trước
-                    }
+                if (newPass.length() < 6) {
+                    Toast.makeText(this, "Mật khẩu mới phải từ 6 ký tự trở lên!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                performChangePassword(currentPass, newPass);
+            });
+        }
+    }
+
+    private void performChangePassword(String currentPass, String newPass) {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null && user.getEmail() != null) {
+            // Xác thực lại người dùng trước khi cập nhật mật khẩu để bảo mật
+            AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), currentPass);
+
+            user.reauthenticate(credential).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    // Xác thực lại thành công, tiến hành cập nhật mật khẩu mới
+                    user.updatePassword(newPass).addOnCompleteListener(updateTask -> {
+                        if (updateTask.isSuccessful()) {
+                            Toast.makeText(ChangePasswordActivity.this, "Thay đổi mật khẩu thành công!", Toast.LENGTH_SHORT).show();
+                            finish();
+                        } else {
+                            Toast.makeText(ChangePasswordActivity.this, "Lỗi: " + updateTask.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    });
                 } else {
-                    Toast.makeText(ChangePasswordActivity.this, "Không tìm thấy thông tin tài khoản!", Toast.LENGTH_SHORT).show();
+                    // Xác thực lại thất bại (sai mật khẩu hiện tại)
+                    Toast.makeText(ChangePasswordActivity.this, "Mật khẩu hiện tại không chính xác!", Toast.LENGTH_SHORT).show();
                 }
             });
+        } else {
+            Toast.makeText(this, "Vui lòng đăng nhập lại để thực hiện chức năng này", Toast.LENGTH_SHORT).show();
         }
     }
 }

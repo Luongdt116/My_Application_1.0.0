@@ -1,22 +1,17 @@
 package huce.fit.myapplication.objects;
 
-import androidx.room.Entity;
-import androidx.room.ForeignKey;
-import androidx.room.PrimaryKey;
+import java.io.Serializable;
 
-@Entity(tableName = "customer_info",
-        foreignKeys = @ForeignKey(entity = CustomerAccount.class,
-                parentColumns = "id",
-                childColumns = "accountId",
-                onDelete = ForeignKey.CASCADE))
-public class CustomerInfo {
-    @PrimaryKey(autoGenerate = true)
+public class CustomerInfo implements Serializable {
     private int infoId;
-    private int accountId; // Liên kết với bảng CustomerAccount
+    private int accountId; 
     private String fullName;
     private String phoneNumber;
     private String birthYear;
     private String gender;
+
+    public CustomerInfo() {
+    }
 
     public CustomerInfo(int accountId, String fullName, String phoneNumber, String birthYear, String gender) {
         this.accountId = accountId;

@@ -1,13 +1,13 @@
 package huce.fit.myapplication.objects;
 
-import androidx.room.Entity;
-import androidx.room.PrimaryKey;
+import java.io.Serializable;
 
-@Entity(tableName = "levels")
-public class Level {
-    @PrimaryKey(autoGenerate = true)
+public class Level implements Serializable {
     private int levelId;
     private String levelName;
+
+    public Level() {
+    }
 
     public Level(String levelName) {
         this.levelName = levelName;
