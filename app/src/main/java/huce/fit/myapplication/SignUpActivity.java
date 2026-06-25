@@ -24,6 +24,7 @@ public class SignUpActivity extends AppCompatActivity {
     private TextView btnLoginRedirect;
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
+    private String dbUrl = "https://app-moblie-131d8-default-rtdb.firebaseio.com/";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -31,9 +32,8 @@ public class SignUpActivity extends AppCompatActivity {
         setContentView(R.layout.signup_activity);
 
         mAuth = FirebaseAuth.getInstance();
-        mDatabase = FirebaseDatabase.getInstance().getReference();
+        mDatabase = FirebaseDatabase.getInstance(dbUrl).getReference();
 
-        // Ánh xạ ID từ signup_activity.xml
         edPhone = findViewById(R.id.edPhone);
         edEmail = findViewById(R.id.edEmail);
         edUsername = findViewById(R.id.edUsername);
@@ -51,7 +51,7 @@ public class SignUpActivity extends AppCompatActivity {
                 String rePassword = edRepassword.getText().toString().trim();
 
                 if (TextUtils.isEmpty(fullName) || TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
-                    Toast.makeText(this, "Vui lòng nhập đủ các trường (*)", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Vui lòng nhập đủ thông tin bắt buộc (*)", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -66,24 +66,24 @@ public class SignUpActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             String userId = mAuth.getCurrentUser().getUid();
                             
-                            // Lưu dữ liệu khớp 100% với cấu trúc JSON bạn cung cấp
+                            // Cấu trúc Accounts khớp 100% với JSON của bạn
                             Map<String, Object> userMap = new HashMap<>();
                             userMap.put("full_name", fullName);
                             userMap.put("phone", phone);
                             userMap.put("email", email);
-                            userMap.put("role", 1); // 1: Khách hàng, 0: Chủ sân (như mẫu JSON)
-                            userMap.put("status", 1); // 1: Hoạt động, 0: Bị khóa
+                            userMap.put("role", 1); // 1: Khách hàng
+                            userMap.put("status", 1); // 1: Hoạt động
                             userMap.put("created_at", System.currentTimeMillis());
 
                             mDatabase.child("Accounts").child(userId).setValue(userMap)
                                 .addOnSuccessListener(aVoid -> showSuccessDialog())
                                 .addOnFailureListener(e -> {
                                     btnSignupAction.setEnabled(true);
-                                    Toast.makeText(this, "Lỗi lưu Database: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(this, "Lỗi Firebase: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                                 });
                         } else {
                             btnSignupAction.setEnabled(true);
-                            Toast.makeText(this, "Lỗi: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, "Lỗi đăng ký: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                         }
                     });
             });
@@ -95,10 +95,13 @@ public class SignUpActivity extends AppCompatActivity {
     private void showSuccessDialog() {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_success, null);
         AlertDialog dialog = new AlertDialog.Builder(this).setView(dialogView).setCancelable(false).create();
-        dialogView.findViewById(R.id.btnOk).setOnClickListener(v -> {
-            dialog.dismiss();
-            finish();
-        });
+        View btnOk = dialogView.findViewById(R.id.btnOk);
+        if (btnOk != null) {
+            btnOk.setOnClickListener(v -> {
+                dialog.dismiss();
+                finish();
+            });
+        }
         dialog.show();
     }
 }

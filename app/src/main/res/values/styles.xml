@@ -7,7 +7,7 @@
 
     <!-- Style cho các ô chọn Ca trong bảng -->
     <style name="BookingSlotStyle">
-        <item name="android:layout_width">100dp</item>
+        <item name="android:layout_width">110dp</item>
         <item name="android:layout_height">match_parent</item>
         <item name="android:layout_margin">1dp</item>
         <item name="android:background">#F5F5F5</item>

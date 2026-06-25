@@ -2,7 +2,6 @@ package huce.fit.myapplication;
 
 import android.app.DatePickerDialog;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -56,15 +55,15 @@ public class BookingActivity extends AppCompatActivity {
     private List<Court> courtList = new ArrayList<>();
     
     private long unitPrice = 0;
+    // Đảm bảo URL này khớp 100% với Database của bạn
+    private String dbUrl = "https://app-moblie-131d8-default-rtdb.firebaseio.com/";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_booking);
 
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().hide();
-        }
+        if (getSupportActionBar() != null) getSupportActionBar().hide();
 
         selectedVenue = (Venue) getIntent().getSerializableExtra("selected_venue");
         if (selectedVenue == null) {
@@ -73,9 +72,8 @@ public class BookingActivity extends AppCompatActivity {
             return;
         }
 
-        if (selectedVenue.getVenue_prices() != null && !selectedVenue.getVenue_prices().isEmpty()) {
-            unitPrice = selectedVenue.getVenue_prices().values().iterator().next().fixed_price;
-        }
+        // Khởi tạo Database với URL chính xác
+        mDatabase = FirebaseDatabase.getInstance(dbUrl).getReference();
 
         tvSelectedDate = findViewById(R.id.tvSelectedDate);
         tvVenueName = findViewById(R.id.tvVenueNameBooking);
@@ -91,110 +89,73 @@ public class BookingActivity extends AppCompatActivity {
         rvBookingCourts.setLayoutManager(new LinearLayoutManager(this));
         rvBookingCourts.setAdapter(adapter);
 
-        zoomSlider.setMax(100);
-        zoomSlider.setProgress(0);
+        if (selectedVenue.getVenue_prices() != null && !selectedVenue.getVenue_prices().isEmpty()) {
+            unitPrice = selectedVenue.getVenue_prices().values().iterator().next().fixed_price;
+        }
+
+        adapter.setOnSelectionChangedListener(selectedCount -> {
+            if (selectedCount > 0) {
+                btnNext.setText("TIẾP THEO (" + selectedCount + " ca - " + String.format("%,d", selectedCount * unitPrice) + "đ)");
+            } else {
+                btnNext.setText("TIẾP THEO");
+            }
+        });
+
         zoomSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser && hsvBookingTable.getChildAt(0) != null) {
                     int maxScrollX = hsvBookingTable.getChildAt(0).getWidth() - hsvBookingTable.getWidth();
-                    if (maxScrollX > 0) {
-                        hsvBookingTable.scrollTo((progress * maxScrollX) / 100, 0);
-                    }
+                    if (maxScrollX > 0) hsvBookingTable.scrollTo((progress * maxScrollX) / 100, 0);
                 }
             }
             @Override public void onStartTrackingTouch(SeekBar seekBar) {}
             @Override public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
-        adapter.setOnSelectionChangedListener(selectedCount -> {
-            if (selectedCount > 0) {
-                long total = selectedCount * unitPrice;
-                btnNext.setText("TIẾP THEO (" + selectedCount + " ca - " + String.format("%,d", total) + "đ)");
-            } else {
-                btnNext.setText("TIẾP THEO");
-            }
-        });
-
-        mDatabase = FirebaseDatabase.getInstance().getReference();
         Calendar c = Calendar.getInstance();
         updateDateDisplay(c.get(Calendar.DAY_OF_MONTH), c.get(Calendar.MONTH) + 1, c.get(Calendar.YEAR));
 
         tvSelectedDate.setOnClickListener(v -> showDatePicker());
         btnBack.setOnClickListener(v -> finish());
-        
-        btnNext.setOnClickListener(v -> {
-            Set<String> selected = adapter.getSelectedSlots();
-            if (selected.isEmpty()) {
-                Toast.makeText(this, "Vui lòng chọn ít nhất một ca đánh!", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            showServicesBottomSheet(selected);
-        });
+        btnNext.setOnClickListener(v -> handleNextStep());
 
         loadData();
     }
 
-    private void showServicesBottomSheet(Set<String> selectedSlots) {
-        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
-        View view = getLayoutInflater().inflate(R.layout.layout_bottom_sheet_services, null);
-        bottomSheetDialog.setContentView(view);
-
-        RecyclerView rvServices = view.findViewById(R.id.rvServices);
-        TextView tvServiceTotal = view.findViewById(R.id.tvServiceTotal);
-        MaterialButton btnConfirm = view.findViewById(R.id.btnConfirmServices);
-
-        final long[] serviceTotalAmount = {0};
-        
-        if (selectedVenue.getServices() != null && !selectedVenue.getServices().isEmpty()) {
-            ServiceAdapter serviceAdapter = new ServiceAdapter(selectedVenue.getServices(), selectedServices -> {
-                serviceTotalAmount[0] = 0;
-                for (Map.Entry<String, Integer> entry : selectedServices.entrySet()) {
-                    Service s = selectedVenue.getServices().get(entry.getKey());
-                    if (s != null) serviceTotalAmount[0] += s.getPrice() * entry.getValue();
-                }
-                tvServiceTotal.setText(String.format("%,dđ", serviceTotalAmount[0]));
-            });
-            rvServices.setLayoutManager(new LinearLayoutManager(this));
-            rvServices.setAdapter(serviceAdapter);
-
-            btnConfirm.setOnClickListener(v -> {
-                bottomSheetDialog.dismiss();
-                navigateToPayment(selectedSlots, serviceAdapter.getSelectedServices(), serviceTotalAmount[0]);
-            });
-        } else {
-            rvServices.setVisibility(View.GONE);
-            btnConfirm.setOnClickListener(v -> {
-                bottomSheetDialog.dismiss();
-                navigateToPayment(selectedSlots, new HashMap<>(), 0);
-            });
-        }
-        bottomSheetDialog.show();
-    }
-
-    private void navigateToPayment(Set<String> selectedSlots, Map<String, Integer> services, long serviceFee) {
-        long finalTotal = (selectedSlots.size() * unitPrice) + serviceFee;
-        Intent intent = new Intent(BookingActivity.this, PaymentActivity.class);
-        intent.putExtra("selected_venue", selectedVenue);
-        intent.putExtra("selected_date", tvSelectedDate.getText().toString());
-        intent.putExtra("selected_slots", (Serializable) new ArrayList<>(selectedSlots));
-        intent.putExtra("selected_services", (Serializable) services);
-        intent.putExtra("total_price", finalTotal);
-        startActivity(intent);
-    }
-
     private void loadData() {
-        if (selectedVenue.getCourts() != null) {
-            courtList = new ArrayList<>(selectedVenue.getCourts().values());
-        }
-        fetchBookingsFromFirebase();
+        Log.d("FIREBASE_LOG", "Đang tải sân cho Venue: " + selectedVenue.getVenueId());
+        
+        // Tải danh sách sân (courts) trực tiếp từ Venues/{venue_id}/courts như trong JSON của bạn
+        mDatabase.child("Venues").child(selectedVenue.getVenueId()).child("courts")
+            .addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    courtList.clear();
+                    if (snapshot.exists()) {
+                        for (DataSnapshot data : snapshot.getChildren()) {
+                            Court court = data.getValue(Court.class);
+                            if (court != null) courtList.add(court);
+                        }
+                        Log.d("FIREBASE_LOG", "Đã nạp " + courtList.size() + " sân");
+                        fetchBookingsFromFirebase();
+                    } else {
+                        Log.e("FIREBASE_LOG", "Không thấy node 'courts' tại ID: " + selectedVenue.getVenueId());
+                        Toast.makeText(BookingActivity.this, "Sân này chưa cập nhật danh sách ca tập!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Log.e("FIREBASE_LOG", "Lỗi nạp sân: " + error.getMessage());
+                }
+            });
     }
 
     private void fetchBookingsFromFirebase() {
-        adapter.clearSelection(); 
         String dateStr = tvSelectedDate.getText().toString();
         String[] parts = dateStr.split("/");
-        String queryDate = parts[2] + "-" + String.format("%02d", Integer.parseInt(parts[1])) + "-" + String.format("%02d", Integer.parseInt(parts[0]));
+        String queryDate = parts[2] + "-" + parts[1] + "-" + parts[0];
 
         mDatabase.child("Bookings")
                 .orderByChild("venue_id").equalTo(selectedVenue.getVenueId())
@@ -210,12 +171,69 @@ public class BookingActivity extends AppCompatActivity {
                 }
                 adapter.setData(courtList, dayBookings);
             }
-            @Override public void onCancelled(@NonNull DatabaseError error) {}
+            @Override public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("FIREBASE_LOG", "Lỗi nạp lịch đặt: " + error.getMessage());
+            }
         });
     }
 
+    private void handleNextStep() {
+        if (adapter.getSelectedSlots().isEmpty()) {
+            Toast.makeText(this, "Vui lòng chọn ít nhất một ca tập!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        showServicesBottomSheet();
+    }
+
+    private void showServicesBottomSheet() {
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        View view = getLayoutInflater().inflate(R.layout.layout_bottom_sheet_services, null);
+        dialog.setContentView(view);
+
+        RecyclerView rvServices = view.findViewById(R.id.rvServices);
+        TextView tvTotal = view.findViewById(R.id.tvServiceTotal);
+        MaterialButton btnConfirm = view.findViewById(R.id.btnConfirmServices);
+
+        final long[] serviceFee = {0};
+        if (selectedVenue.getServices() != null && !selectedVenue.getServices().isEmpty()) {
+            ServiceAdapter sAdapter = new ServiceAdapter(selectedVenue.getServices(), selectedServices -> {
+                serviceFee[0] = 0;
+                for (Map.Entry<String, Integer> entry : selectedServices.entrySet()) {
+                    Service s = selectedVenue.getServices().get(entry.getKey());
+                    if (s != null) serviceFee[0] += (long) s.getPrice() * entry.getValue();
+                }
+                tvTotal.setText(String.format("%,dđ", serviceFee[0]));
+            });
+            rvServices.setLayoutManager(new LinearLayoutManager(this));
+            rvServices.setAdapter(sAdapter);
+
+            btnConfirm.setOnClickListener(v -> {
+                dialog.dismiss();
+                navigateToPayment(sAdapter.getSelectedServices(), serviceFee[0]);
+            });
+        } else {
+            rvServices.setVisibility(View.GONE);
+            btnConfirm.setOnClickListener(v -> {
+                dialog.dismiss();
+                navigateToPayment(new HashMap<>(), 0);
+            });
+        }
+        dialog.show();
+    }
+
+    private void navigateToPayment(Map<String, Integer> services, long fee) {
+        long finalTotal = (adapter.getSelectedSlots().size() * unitPrice) + fee;
+        Intent intent = new Intent(this, PaymentActivity.class);
+        intent.putExtra("selected_venue", selectedVenue);
+        intent.putExtra("selected_date", tvSelectedDate.getText().toString());
+        intent.putExtra("selected_slots", new ArrayList<>(adapter.getSelectedSlots()));
+        intent.putExtra("selected_services", (Serializable) services);
+        intent.putExtra("total_price", finalTotal);
+        startActivity(intent);
+    }
+
     private void showDatePicker() {
-        final Calendar c = Calendar.getInstance();
+        Calendar c = Calendar.getInstance();
         new DatePickerDialog(this, (view, y, m, d) -> {
             updateDateDisplay(d, m + 1, y);
             fetchBookingsFromFirebase();

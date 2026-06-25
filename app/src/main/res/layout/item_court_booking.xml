@@ -3,9 +3,10 @@
     android:layout_width="wrap_content"
     android:layout_height="75dp"
     android:orientation="horizontal"
-    android:background="@color/white">
+    android:background="@color/white"
+    android:paddingVertical="1dp">
 
-    <!-- Tên sân bên trái (Cố định) -->
+    <!-- Tên sân (90dp) -->
     <TextView
         android:id="@+id/tvCourtNameRow"
         android:layout_width="90dp"
@@ -13,13 +14,12 @@
         android:background="#E0F2F1"
         android:gravity="center"
         android:padding="8dp"
-        android:text="Sân 1"
+        android:text="Sân mẫu"
         android:textColor="@color/black"
         android:textSize="13sp"
         android:textStyle="bold" />
 
-    <!-- Danh sách 17 Ca đánh trực tiếp (Từ 5h sáng đến 22h đêm) -->
-    <!-- Bạn có thể chỉnh style trực tiếp cho từng ô ở đây -->
+    <!-- 17 Ca đánh (Mỗi ca 110dp) -->
     <LinearLayout
         android:id="@+id/layoutTimeSlots"
         android:layout_width="wrap_content"
@@ -45,5 +45,4 @@
         <TextView android:id="@+id/slot21" style="@style/BookingSlotStyle" android:text="Ca 17\n21h-22h" />
 
     </LinearLayout>
-
 </LinearLayout>
