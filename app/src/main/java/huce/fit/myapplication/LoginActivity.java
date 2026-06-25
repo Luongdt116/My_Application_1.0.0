@@ -19,7 +19,7 @@ import com.google.firebase.database.FirebaseDatabase;
 
 public class LoginActivity extends AppCompatActivity {
     private Button btnLogin;
-    private TextView btnSignup;
+    private TextView btnSignup, tvForgotPassword;
     private EditText edEmail, edPassword;
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
@@ -37,6 +37,7 @@ public class LoginActivity extends AppCompatActivity {
 
         btnLogin = findViewById(R.id.btnLogin);
         btnSignup = findViewById(R.id.btnSignup);
+        tvForgotPassword = findViewById(R.id.tvForgotPassword);
         edEmail = findViewById(R.id.edUsername); 
         edPassword = findViewById(R.id.edPassword);
 
@@ -92,6 +93,13 @@ public class LoginActivity extends AppCompatActivity {
                             Toast.makeText(this, "Đăng nhập thất bại: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                         }
                     });
+            });
+        }
+
+        if (tvForgotPassword != null) {
+            tvForgotPassword.setOnClickListener(v -> {
+                Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
+                startActivity(intent);
             });
         }
 
