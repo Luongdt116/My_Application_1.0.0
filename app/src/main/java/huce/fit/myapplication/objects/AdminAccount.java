@@ -1,6 +1,11 @@
 package huce.fit.myapplication.objects;
 
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
+@Entity(tableName = "admin_accounts")
+public class AdminAccount {
+    @PrimaryKey(autoGenerate = true)
     private int id;
     private String username;
     private String password;

@@ -38,6 +38,12 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.firebase.database)
+    
+    // Room
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    annotationProcessor(libs.room.compiler)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

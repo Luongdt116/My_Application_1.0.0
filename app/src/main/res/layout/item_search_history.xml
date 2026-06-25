@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingVertical="8dp">
+
+    <ImageView
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:src="@android:drawable/ic_menu_recent_history"
+        app:tint="#BBBBBB" />
+
+    <TextView
+        android:id="@+id/tvHistoryQuery"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:text="Sân cầu lông"
+        android:textColor="#333333"
+        android:textSize="14sp" />
+
+    <ImageView
+        android:id="@+id/btnDeleteHistory"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:padding="2dp"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        app:tint="#CCCCCC" />
+</LinearLayout>

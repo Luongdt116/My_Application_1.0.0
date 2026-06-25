@@ -3,25 +3,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8F9FA"
-    android:clipChildren="false"
-    android:clipToPadding="false">
+    android:background="#F8F9FA">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipChildren="false"
+        android:fillViewport="true"
         android:clipToPadding="false">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="20dp"
-            android:clipChildren="false"
-            android:clipToPadding="false">
+            android:paddingBottom="20dp">
 
-            <!-- Header Section -->
+            <!-- 1. Header Section -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="180dp"
@@ -40,7 +36,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
-                    android:elevation="10dp"
                     android:orientation="horizontal"
                     app:layout_constraintBottom_toBottomOf="@id/imgAvatar"
                     app:layout_constraintStart_toEndOf="@id/imgAvatar"
@@ -82,18 +77,11 @@
                     app:layout_constraintBottom_toBottomOf="@id/imgAvatar"
                     app:layout_constraintStart_toEndOf="@id/imgAvatar"
                     app:layout_constraintTop_toTopOf="@id/imgAvatar" />
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginEnd="20dp"
-                    android:src="@android:drawable/ic_popup_reminder"
-                    app:layout_constraintBottom_toBottomOf="@id/imgAvatar"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@id/imgAvatar" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Search Bar -->
+            <!-- 2. Search Bar -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/cardSearch"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginHorizontal="20dp"
@@ -101,82 +89,144 @@
                 app:cardCornerRadius="25dp"
                 app:cardElevation="4dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:paddingHorizontal="15dp">
-                    <EditText android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="@null" android:hint="Tìm kiếm" android:textSize="14sp" />
-                    <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_menu_search" />
+                    <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_search" app:tint="#888888" />
+                    <EditText
+                        android:id="@+id/etSearch"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@null"
+                        android:hint="Tìm kiếm sân, địa chỉ..."
+                        android:paddingHorizontal="10dp"
+                        android:inputType="text"
+                        android:maxLines="1"
+                        android:textSize="14sp" />
+                    <ImageView
+                        android:id="@+id/btnClearSearch"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@android:drawable/ic_menu_close_clear_cancel"
+                        android:visibility="gone"
+                        app:tint="#888888" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Sport Icons Grid (6 items) -->
+            <!-- Search History & Suggestions -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardSearchHistory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="25dp"
+                android:layout_marginTop="5dp"
+                android:visibility="gone"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="2dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+                    <RelativeLayout
+                        android:id="@+id/layoutHistoryHeader"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="5dp">
+                        <TextView
+                            android:id="@+id/tvHistoryTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Lịch sử tìm kiếm"
+                            android:textColor="#999999"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/btnClearAllHistory"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:text="Xóa tất cả"
+                            android:textColor="#FF5252"
+                            android:textSize="12sp" />
+                    </RelativeLayout>
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvSearchHistory"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- 3. Sport Icons Grid -->
             <GridLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="25dp"
                 android:columnCount="4"
                 android:paddingHorizontal="10dp">
-                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:layout_marginBottom="15dp" android:orientation="vertical">
+                <LinearLayout android:id="@+id/btnFilterPickleball" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:layout_marginBottom="15dp" android:orientation="vertical">
                     <androidx.cardview.widget.CardView android:layout_width="50dp" android:layout_height="50dp" app:cardCornerRadius="12dp"><ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:padding="8dp" android:src="@drawable/pickleball" /></androidx.cardview.widget.CardView>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pickleball" android:textSize="11sp" />
                 </LinearLayout>
-                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical">
+                <LinearLayout android:id="@+id/btnFilterBadminton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical">
                     <androidx.cardview.widget.CardView android:layout_width="50dp" android:layout_height="50dp" app:cardCornerRadius="12dp"><ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:padding="8dp" android:src="@drawable/badminton" /></androidx.cardview.widget.CardView>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Cầu lông" android:textSize="11sp" />
                 </LinearLayout>
-                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical">
+                <LinearLayout android:id="@+id/btnFilterFootball" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical">
                     <androidx.cardview.widget.CardView android:layout_width="50dp" android:layout_height="50dp" app:cardCornerRadius="12dp"><ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:padding="8dp" android:src="@drawable/football" /></androidx.cardview.widget.CardView>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Bóng đá" android:textSize="11sp" />
                 </LinearLayout>
-                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical">
+                <LinearLayout android:id="@+id/btnFilterTennis" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical">
                     <androidx.cardview.widget.CardView android:layout_width="50dp" android:layout_height="50dp" app:cardCornerRadius="12dp"><ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:padding="8dp" android:src="@drawable/tennis" /></androidx.cardview.widget.CardView>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tennis" android:textSize="11sp" />
                 </LinearLayout>
-                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical">
+                <LinearLayout android:id="@+id/btnFilterVolleyball" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical">
                     <androidx.cardview.widget.CardView android:layout_width="50dp" android:layout_height="50dp" app:cardCornerRadius="12dp"><ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:padding="8dp" android:src="@drawable/volleyball" /></androidx.cardview.widget.CardView>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="B.Chuyền" android:textSize="11sp" />
                 </LinearLayout>
-                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical">
+                <LinearLayout android:id="@+id/btnFilterBasketball" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical">
                     <androidx.cardview.widget.CardView android:layout_width="50dp" android:layout_height="50dp" app:cardCornerRadius="12dp"><ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:padding="8dp" android:src="@drawable/basketball" /></androidx.cardview.widget.CardView>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Bóng rổ" android:textSize="11sp" />
                 </LinearLayout>
             </GridLayout>
 
-            <!-- Suggested Courts -->
+            <!-- 4. Suggested Courts (Dynamic with RecyclerView) -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="20dp"
                 android:layout_marginTop="20dp"
-                android:text="Sân trống gợi ý cho bạn" android:textColor="#333333" android:textStyle="bold" android:textSize="15sp" />
-            <androidx.cardview.widget.CardView
+                android:text="Sân trống gợi ý cho bạn"
+                android:textColor="#333333"
+                android:textStyle="bold"
+                android:textSize="15sp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvFields"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="20dp"
                 android:layout_marginTop="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-                    <ImageView android:layout_width="match_parent" android:layout_height="160dp" android:scaleType="centerCrop" android:src="@drawable/badminton" />
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp" android:gravity="center_vertical">
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Sân cầu lông YYS" android:textStyle="bold" android:textSize="15sp" android:textColor="@color/black" />
-                        <Button android:id="@+id/btnBookCourt1" android:layout_width="wrap_content" android:layout_height="36dp" android:text="ĐẶT LỊCH" android:textSize="11sp" android:backgroundTint="#09A459"/>
-                    </LinearLayout>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-            <androidx.cardview.widget.CardView
+                android:nestedScrollingEnabled="false" />
+
+            <!-- No Results View -->
+            <LinearLayout
+                android:id="@+id/layoutNoResults"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="20dp"
-                android:layout_marginTop="12dp"
-                android:layout_marginBottom="24dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-                    <ImageView android:layout_width="match_parent" android:layout_height="160dp" android:scaleType="centerCrop" android:src="@drawable/football" />
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp" android:gravity="center_vertical">
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Sân bóng đá YYS" android:textStyle="bold" android:textSize="15sp" android:textColor="@color/black" />
-                        <Button android:id="@+id/btnBookCourt2" android:layout_width="wrap_content" android:layout_height="36dp" android:text="ĐẶT LỊCH" android:textSize="11sp" android:backgroundTint="#09A459"/>
-                    </LinearLayout>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+                android:layout_height="200dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:visibility="gone">
+                <ImageView
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:src="@android:drawable/ic_menu_search"
+                    app:tint="#CCCCCC" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Không tìm thấy kết quả nào"
+                    android:textColor="#999999"
+                    android:textSize="14sp" />
+            </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

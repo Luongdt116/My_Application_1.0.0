@@ -4,6 +4,11 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <queries>
+        <package android:name="vn.com.vng.zalopay" />
+        <package android:name="vn.com.vng.zalopay.sb" />
+    </queries>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -41,9 +46,6 @@
         <activity android:name=".LicenseActivity" />
         <activity android:name=".EditProfileActivity" />
         <activity android:name=".ChangePasswordActivity" />
-        <activity android:name=".MovieActivity" />
-        <activity android:name=".AddMovieActivity" />
-        <activity android:name=".SplashScreenActivity" />
 
     </application>
 

@@ -1,5 +1,6 @@
 package huce.fit.myapplication;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.EditText;
@@ -28,6 +29,7 @@ public class PaymentActivity extends AppCompatActivity {
     private ArrayList<String> selectedSlots;
     private long totalPrice;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

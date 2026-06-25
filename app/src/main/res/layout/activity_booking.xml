@@ -5,17 +5,18 @@
     android:layout_height="match_parent"
     android:background="#F0F9F4">
 
-    <!-- Header -->
+    <!-- Header Toolbar -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbarBooking"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="#09A459"
         app:layout_constraintTop_toTopOf="parent">
+
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="30dp"
+            android:layout_height="match_parent">
+
             <ImageView
                 android:id="@+id/btnBackBooking"
                 android:layout_width="wrap_content"
@@ -23,7 +24,9 @@
                 android:layout_centerVertical="true"
                 android:src="@android:drawable/ic_menu_revert"
                 app:tint="@color/white" />
+
             <TextView
+                android:id="@+id/tvVenueNameBooking"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
@@ -48,13 +51,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
-            android:background="@drawable/custom_edittext"
+            android:background="@color/gray"
             android:backgroundTint="#2E7D32"
-            android:drawableEnd="@android:drawable/ic_menu_my_calendar"
             android:drawablePadding="8dp"
             android:paddingHorizontal="12dp"
             android:paddingVertical="4dp"
-            android:text="15/04/2026"
+            android:text="01/01/2024"
             android:textColor="@color/white"
             android:textSize="14sp" />
 
@@ -63,8 +65,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:orientation="horizontal">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="■ Trống" android:textColor="@color/white" android:textSize="10sp" android:layout_marginEnd="8dp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="■ Đã đặt" android:textColor="#E53935" android:textSize="10sp" android:layout_marginEnd="8dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="■ Trống" android:textColor="@color/white" android:textSize="11sp" android:layout_marginEnd="12dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="■ Đã đặt" android:textColor="#FF5252" android:textSize="11sp"/>
         </LinearLayout>
     </LinearLayout>
 
@@ -76,32 +78,39 @@
         android:textColor="#D32F2F"
         android:textSize="11sp"
         android:background="#FFEBEE"
+        android:text="Vuốt ngang để xem thêm các ca"
         app:layout_constraintTop_toBottomOf="@id/layoutHeaderInfo"/>
 
-    <!-- Booking Table Section -->
+    <!-- Vùng bảng đặt sân -->
+    <HorizontalScrollView
+        android:id="@+id/hsvBookingTable"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:fillViewport="true"
         app:layout_constraintBottom_toTopOf="@id/zoomSlider"
         app:layout_constraintTop_toBottomOf="@id/tvWarning">
 
-            <LinearLayout
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvBookingCourts"
                 android:layout_width="wrap_content"
-                android:orientation="vertical">
-
-                    android:layout_width="wrap_content"
-
-            </LinearLayout>
-        </HorizontalScrollView>
+                android:layout_height="match_parent" />
+        </LinearLayout>
+    </HorizontalScrollView>
 
     <SeekBar
         android:id="@+id/zoomSlider"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintBottom_toTopOf="@id/btnNext"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginBottom="12dp"
+        app:layout_constraintBottom_toTopOf="@id/btnNext" />
 
-    <!-- Bottom Button -->
+    <!-- Nút Tiếp theo -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnNext"
         android:layout_width="match_parent"
