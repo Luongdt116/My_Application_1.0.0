@@ -26,10 +26,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.json.JSONObject;
 
-import huce.fit.myapplication.R; // Đảm bảo import đúng file R của project
+import huce.fit.myapplication.R; 
 import huce.fit.myapplication.objects.Court;
 import huce.fit.myapplication.objects.Venue;
 import huce.fit.myapplication.util.CreateOrder;
+
+// Các thư viện ZaloPay SDK
 import vn.zalopay.sdk.Environment;
 import vn.zalopay.sdk.ZaloPayError;
 import vn.zalopay.sdk.ZaloPaySDK;
@@ -60,33 +62,27 @@ public class PaymentActivity extends AppCompatActivity {
             getSupportActionBar().hide();
         }
 
-        // Khởi tạo ZaloPay SDK
-        try {
-            ZaloPaySDK.init(Integer.parseInt(ZaloPayConstant.APP_ID), Environment.SANDBOX);
-        } catch (Exception e) {
-            Log.e("ZaloPay", "Init error: " + e.getMessage());
-        }
+        // 1. Khởi tạo ZaloPay SDK (Dùng APP_ID 2554)
+        ZaloPaySDK.init(2554, Environment.SANDBOX);
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
         mAuth = FirebaseAuth.getInstance();
 
-        // 1. Nhận dữ liệu từ Intent gửi từ BookingActivity
+        // 2. Nhận dữ liệu từ Intent
         selectedVenue = (Venue) getIntent().getSerializableExtra("selected_venue");
         selectedDate = getIntent().getStringExtra("selected_date");
         selectedSlots = getIntent().getStringArrayListExtra("selected_slots");
         
         Object servicesObj = getIntent().getSerializableExtra("selected_services");
         if (servicesObj instanceof Map) {
-            @SuppressWarnings("unchecked")
-            Map<String, Integer> map = (Map<String, Integer>) servicesObj;
-            selectedServices = map;
+            selectedServices = (Map<String, Integer>) servicesObj;
         } else {
             selectedServices = new HashMap<>();
         }
         
         totalPrice = getIntent().getLongExtra("total_price", 0);
 
-        // 2. Ánh xạ UI (Sử dụng đúng ID từ layout activity_payment.xml)
+        // 3. Ánh xạ UI (Đảm bảo khớp 100% với activity_payment.xml)
         tvVenueName = findViewById(R.id.tvPaymentVenueName);
         tvVenueAddress = findViewById(R.id.tvPaymentVenueAddress);
         tvDate = findViewById(R.id.tvPaymentDate);
@@ -100,7 +96,7 @@ public class PaymentActivity extends AppCompatActivity {
         btnConfirm = findViewById(R.id.btnConfirmPayment);
         btnBack = findViewById(R.id.btnBackPayment);
 
-        // 3. Hiển thị thông tin hóa đơn
+        // 4. Đổ dữ liệu lên giao diện
         if (selectedVenue != null) {
             tvVenueName.setText("Tên CLB: " + selectedVenue.getVenue_name());
             tvVenueAddress.setText("Địa chỉ: " + selectedVenue.getAddress_detail());
@@ -109,19 +105,12 @@ public class PaymentActivity extends AppCompatActivity {
             tvTotalPrice.setText(String.format(Locale.getDefault(), "Tổng tiền: %,dđ", totalPrice));
         }
 
-        // 4. Sự kiện nút quay lại
-        if (btnBack != null) {
-            btnBack.setOnClickListener(v -> finish());
-        }
+        if (btnBack != null) btnBack.setOnClickListener(v -> finish());
 
-        // 5. Sự kiện Xác nhận thanh toán
         if (btnConfirm != null) {
             btnConfirm.setOnClickListener(v -> {
-                String name = etName.getText().toString().trim();
-                String phone = etPhone.getText().toString().trim();
-                
-                if (name.isEmpty() || phone.isEmpty()) {
-                    Toast.makeText(this, "Vui lòng nhập tên và số điện thoại liên hệ", Toast.LENGTH_SHORT).show();
+                if (etName.getText().toString().trim().isEmpty() || etPhone.getText().toString().trim().isEmpty()) {
+                    Toast.makeText(this, "Vui lòng nhập tên và số điện thoại", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 requestZaloPay();
@@ -137,19 +126,16 @@ public class PaymentActivity extends AppCompatActivity {
         executor.execute(() -> {
             try {
                 JSONObject data = orderApi.createOrder(String.valueOf(totalPrice));
-                if (data == null) {
-                    handler.post(() -> Toast.makeText(PaymentActivity.this, "Lỗi kết nối server ZaloPay", Toast.LENGTH_SHORT).show());
-                    return;
-                }
+                if (data == null) return;
 
                 String code = data.getString("return_code");
                 handler.post(() -> {
                     if (code.equals("1")) {
                         try {
                             String token = data.getString("zp_trans_token");
-                            String backUrl = "zp-redirect-" + ZaloPayConstant.APP_ID + "://app";
                             
-                            ZaloPaySDK.getInstance().payOrder(PaymentActivity.this, token, backUrl, new PayOrderListener() {
+                            // SỬ DỤNG SCHEME "demozpdk://app" THEO ĐÚNG MANIFEST CỦA BẠN
+                            ZaloPaySDK.getInstance().payOrder(PaymentActivity.this, token, "demozpdk://app", new PayOrderListener() {
                                 @Override
                                 public void onPaymentSucceeded(String transactionId, String transToken, String appTransID) {
                                     saveBookingsToFirebase(appTransID);
@@ -165,9 +151,7 @@ public class PaymentActivity extends AppCompatActivity {
                                     Toast.makeText(PaymentActivity.this, "Lỗi: " + zaloPayError.toString(), Toast.LENGTH_SHORT).show();
                                 }
                             });
-                        } catch (Exception e) {
-                            Log.e("ZaloPay", "Token error: " + e.getMessage());
-                        }
+                        } catch (Exception e) { e.printStackTrace(); }
                     } else {
                         Toast.makeText(PaymentActivity.this, "Tạo đơn thất bại", Toast.LENGTH_SHORT).show();
                     }
@@ -226,7 +210,6 @@ public class PaymentActivity extends AppCompatActivity {
             paymentInfo.put("paid_at", now);
             
             bookingData.put("payment_info", paymentInfo);
-
             mDatabase.child("Bookings").push().setValue(bookingData);
         }
 
@@ -246,15 +229,11 @@ public class PaymentActivity extends AppCompatActivity {
                 if (parts.length == 2) {
                     String courtName = parts[0];
                     int hour = Integer.parseInt(parts[1]);
-                    if (!groupedSlots.containsKey(courtName)) {
-                        groupedSlots.put(courtName, new ArrayList<>());
-                    }
-                    List<Integer> list = groupedSlots.get(courtName);
-                    if (list != null) list.add(hour);
+                    if (!groupedSlots.containsKey(courtName)) groupedSlots.put(courtName, new ArrayList<>());
+                    groupedSlots.get(courtName).add(hour);
                 }
             }
         }
-
         for (Map.Entry<String, List<Integer>> entry : groupedSlots.entrySet()) {
             sb.append("- ").append(entry.getKey()).append(": ");
             List<Integer> hours = entry.getValue();
@@ -266,15 +245,12 @@ public class PaymentActivity extends AppCompatActivity {
             }
             sb.append("\n");
         }
-
         if (services != null && !services.isEmpty()) {
             sb.append("\nDịch vụ thêm:\n");
             for (Map.Entry<String, Integer> entry : services.entrySet()) {
-                String serviceId = entry.getKey();
-                int qty = entry.getValue();
-                if (selectedVenue.getServices() != null && selectedVenue.getServices().containsKey(serviceId)) {
-                    sb.append("- ").append(selectedVenue.getServices().get(serviceId).getName())
-                      .append(" (x").append(qty).append(")\n");
+                if (selectedVenue.getServices() != null && selectedVenue.getServices().containsKey(entry.getKey())) {
+                    sb.append("- ").append(selectedVenue.getServices().get(entry.getKey()).getName())
+                      .append(" (x").append(entry.getValue()).append(")\n");
                 }
             }
         }

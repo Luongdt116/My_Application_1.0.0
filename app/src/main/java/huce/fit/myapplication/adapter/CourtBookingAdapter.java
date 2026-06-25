@@ -1,7 +1,6 @@
 package huce.fit.myapplication.adapter;
 
 import android.graphics.Color;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,8 +20,6 @@ public class CourtBookingAdapter extends RecyclerView.Adapter<CourtBookingAdapte
     private List<Court> courtList = new ArrayList<>();
     private List<Booking> bookingList = new ArrayList<>();
     private OnSelectionChangedListener listener;
-    
-    // Lưu trữ các ô đang được chọn (Key: CourtName|Hour)
     private Set<String> selectedSlots = new HashSet<>();
 
     public interface OnSelectionChangedListener {
@@ -36,8 +33,6 @@ public class CourtBookingAdapter extends RecyclerView.Adapter<CourtBookingAdapte
     public void setData(List<Court> courts, List<Booking> bookings) {
         this.courtList = courts;
         this.bookingList = bookings;
-        // Giữ nguyên selection nếu data reload? Thường thì nên clear nếu ngày đổi, 
-        // nhưng ở đây ta để Activity quản lý việc clear khi đổi ngày.
         notifyDataSetChanged();
     }
 
@@ -53,8 +48,7 @@ public class CourtBookingAdapter extends RecyclerView.Adapter<CourtBookingAdapte
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_court_booking, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_court_booking, parent, false);
         return new ViewHolder(view);
     }
 
@@ -62,21 +56,13 @@ public class CourtBookingAdapter extends RecyclerView.Adapter<CourtBookingAdapte
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Court court = courtList.get(position);
         holder.tvCourtName.setText(court.getName());
-
-        holder.layoutSlots.removeAllViews();
-        // Hiển thị từ 5h sáng đến 23h tối (tổng cộng 18 ca nếu tính đến 23h đóng cửa)
-        // Ca 1: 5-6, Ca 2: 6-7, ..., Ca 18: 22-23
-        for (int hour = 5; hour <= 22; hour++) {
-            final int h = hour;
-            final int caNumber = hour - 4;
+        
+        // Quản lý 17 Ca (Từ 5h đến 21h bắt đầu)
+        for (int i = 0; i < 17; i++) {
+            final int hour = 5 + i;
+            TextView slotTv = holder.slots[i];
             
-            TextView slotTv = new TextView(holder.itemView.getContext());
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(220, ViewGroup.LayoutParams.MATCH_PARENT);
-            lp.setMargins(4, 4, 4, 4);
-            slotTv.setLayoutParams(lp);
-            slotTv.setGravity(Gravity.CENTER);
-            slotTv.setTextSize(10);
-            slotTv.setText("Ca " + caNumber + "\n" + h + "h-" + (h+1) + "h");
+            if (slotTv == null) continue;
 
             boolean isBooked = isTimeSlotBooked(court.getName(), hour);
             boolean isMaintenance = (court.getStatus() == 0);
@@ -84,15 +70,15 @@ public class CourtBookingAdapter extends RecyclerView.Adapter<CourtBookingAdapte
             boolean isSelected = selectedSlots.contains(selectionKey);
 
             if (isBooked) {
-                slotTv.setBackgroundColor(Color.parseColor("#E53935")); // Đỏ (Đã đặt)
+                slotTv.setBackgroundColor(Color.parseColor("#E53935")); // Đỏ: Đã đặt
                 slotTv.setTextColor(Color.WHITE);
-                slotTv.setEnabled(false);
+                slotTv.setOnClickListener(null);
             } else if (isMaintenance) {
-                slotTv.setBackgroundColor(Color.parseColor("#757575")); // Xám (Bảo trì)
+                slotTv.setBackgroundColor(Color.parseColor("#757575")); // Xám: Bảo trì
                 slotTv.setTextColor(Color.WHITE);
-                slotTv.setEnabled(false);
+                slotTv.setOnClickListener(null);
             } else if (isSelected) {
-                slotTv.setBackgroundColor(Color.parseColor("#FF9800")); // Cam (Đang chọn)
+                slotTv.setBackgroundColor(Color.parseColor("#FF9800")); // Cam: Đang chọn
                 slotTv.setTextColor(Color.WHITE);
                 slotTv.setOnClickListener(v -> {
                     selectedSlots.remove(selectionKey);
@@ -100,7 +86,7 @@ public class CourtBookingAdapter extends RecyclerView.Adapter<CourtBookingAdapte
                     if (listener != null) listener.onSelectionChanged(selectedSlots.size());
                 });
             } else {
-                slotTv.setBackgroundColor(Color.WHITE); // Trắng (Trống)
+                slotTv.setBackgroundColor(Color.parseColor("#F5F5F5")); // Trắng xám: Trống
                 slotTv.setTextColor(Color.BLACK);
                 slotTv.setOnClickListener(v -> {
                     selectedSlots.add(selectionKey);
@@ -108,7 +94,6 @@ public class CourtBookingAdapter extends RecyclerView.Adapter<CourtBookingAdapte
                     if (listener != null) listener.onSelectionChanged(selectedSlots.size());
                 });
             }
-            holder.layoutSlots.addView(slotTv);
         }
     }
 
@@ -133,11 +118,29 @@ public class CourtBookingAdapter extends RecyclerView.Adapter<CourtBookingAdapte
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvCourtName;
-        LinearLayout layoutSlots;
+        TextView[] slots = new TextView[17];
+        
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvCourtName = itemView.findViewById(R.id.tvCourtNameRow);
-            layoutSlots = itemView.findViewById(R.id.layoutTimeSlots);
+            // Ánh xạ 17 slot từ XML
+            slots[0] = itemView.findViewById(R.id.slot5);
+            slots[1] = itemView.findViewById(R.id.slot6);
+            slots[2] = itemView.findViewById(R.id.slot7);
+            slots[3] = itemView.findViewById(R.id.slot8);
+            slots[4] = itemView.findViewById(R.id.slot9);
+            slots[5] = itemView.findViewById(R.id.slot10);
+            slots[6] = itemView.findViewById(R.id.slot11);
+            slots[7] = itemView.findViewById(R.id.slot12);
+            slots[8] = itemView.findViewById(R.id.slot13);
+            slots[9] = itemView.findViewById(R.id.slot14);
+            slots[10] = itemView.findViewById(R.id.slot15);
+            slots[11] = itemView.findViewById(R.id.slot16);
+            slots[12] = itemView.findViewById(R.id.slot17);
+            slots[13] = itemView.findViewById(R.id.slot18);
+            slots[14] = itemView.findViewById(R.id.slot19);
+            slots[15] = itemView.findViewById(R.id.slot20);
+            slots[16] = itemView.findViewById(R.id.slot21);
         }
     }
 }

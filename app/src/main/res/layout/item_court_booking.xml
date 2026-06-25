@@ -1,25 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
-    android:layout_height="50dp"
-    android:orientation="horizontal">
+    android:layout_height="75dp"
+    android:orientation="horizontal"
+    android:background="@color/white">
 
-    <!-- Tên sân (Cột cố định giả lập) -->
+    <!-- Tên sân bên trái (Cố định) -->
     <TextView
         android:id="@+id/tvCourtNameRow"
-        android:layout_width="70dp"
+        android:layout_width="90dp"
         android:layout_height="match_parent"
-        android:background="@drawable/custom_edittext"
+        android:background="#E0F2F1"
         android:gravity="center"
+        android:padding="8dp"
         android:text="Sân 1"
         android:textColor="@color/black"
-        android:textSize="12sp"
+        android:textSize="13sp"
         android:textStyle="bold" />
 
-    <!-- Container chứa các ô thời gian -->
+    <!-- Danh sách 17 Ca đánh trực tiếp (Từ 5h sáng đến 22h đêm) -->
+    <!-- Bạn có thể chỉnh style trực tiếp cho từng ô ở đây -->
     <LinearLayout
         android:id="@+id/layoutTimeSlots"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:orientation="horizontal" />
+        android:orientation="horizontal">
+
+        <TextView android:id="@+id/slot5" style="@style/BookingSlotStyle" android:text="Ca 1\n5h-6h" />
+        <TextView android:id="@+id/slot6" style="@style/BookingSlotStyle" android:text="Ca 2\n6h-7h" />
+        <TextView android:id="@+id/slot7" style="@style/BookingSlotStyle" android:text="Ca 3\n7h-8h" />
+        <TextView android:id="@+id/slot8" style="@style/BookingSlotStyle" android:text="Ca 4\n8h-9h" />
+        <TextView android:id="@+id/slot9" style="@style/BookingSlotStyle" android:text="Ca 5\n9h-10h" />
+        <TextView android:id="@+id/slot10" style="@style/BookingSlotStyle" android:text="Ca 6\n10h-11h" />
+        <TextView android:id="@+id/slot11" style="@style/BookingSlotStyle" android:text="Ca 7\n11h-12h" />
+        <TextView android:id="@+id/slot12" style="@style/BookingSlotStyle" android:text="Ca 8\n12h-13h" />
+        <TextView android:id="@+id/slot13" style="@style/BookingSlotStyle" android:text="Ca 9\n13h-14h" />
+        <TextView android:id="@+id/slot14" style="@style/BookingSlotStyle" android:text="Ca 10\n14h-15h" />
+        <TextView android:id="@+id/slot15" style="@style/BookingSlotStyle" android:text="Ca 11\n15h-16h" />
+        <TextView android:id="@+id/slot16" style="@style/BookingSlotStyle" android:text="Ca 12\n16h-17h" />
+        <TextView android:id="@+id/slot17" style="@style/BookingSlotStyle" android:text="Ca 13\n17h-18h" />
+        <TextView android:id="@+id/slot18" style="@style/BookingSlotStyle" android:text="Ca 14\n18h-19h" />
+        <TextView android:id="@+id/slot19" style="@style/BookingSlotStyle" android:text="Ca 15\n19h-20h" />
+        <TextView android:id="@+id/slot20" style="@style/BookingSlotStyle" android:text="Ca 16\n20h-21h" />
+        <TextView android:id="@+id/slot21" style="@style/BookingSlotStyle" android:text="Ca 17\n21h-22h" />
+
+    </LinearLayout>
+
 </LinearLayout>

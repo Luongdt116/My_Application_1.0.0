@@ -66,7 +66,6 @@ public class BookingActivity extends AppCompatActivity {
             getSupportActionBar().hide();
         }
 
-        // 1. Nhận dữ liệu từ Intent
         selectedVenue = (Venue) getIntent().getSerializableExtra("selected_venue");
         if (selectedVenue == null) {
             Toast.makeText(this, "Không tìm thấy thông tin sân!", Toast.LENGTH_SHORT).show();
@@ -74,12 +73,10 @@ public class BookingActivity extends AppCompatActivity {
             return;
         }
 
-        // Lấy giá gốc để tính toán
         if (selectedVenue.getVenue_prices() != null && !selectedVenue.getVenue_prices().isEmpty()) {
             unitPrice = selectedVenue.getVenue_prices().values().iterator().next().fixed_price;
         }
 
-        // 2. Ánh xạ UI
         tvSelectedDate = findViewById(R.id.tvSelectedDate);
         tvVenueName = findViewById(R.id.tvVenueNameBooking);
         btnBack = findViewById(R.id.btnBackBooking);
@@ -90,12 +87,10 @@ public class BookingActivity extends AppCompatActivity {
 
         tvVenueName.setText(selectedVenue.getVenue_name());
 
-        // 3. Thiết lập RecyclerView cho các sân (Courts)
         adapter = new CourtBookingAdapter();
         rvBookingCourts.setLayoutManager(new LinearLayoutManager(this));
         rvBookingCourts.setAdapter(adapter);
 
-        // 4. Đồng bộ SeekBar và HorizontalScrollView
         zoomSlider.setMax(100);
         zoomSlider.setProgress(0);
         zoomSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -104,8 +99,7 @@ public class BookingActivity extends AppCompatActivity {
                 if (fromUser && hsvBookingTable.getChildAt(0) != null) {
                     int maxScrollX = hsvBookingTable.getChildAt(0).getWidth() - hsvBookingTable.getWidth();
                     if (maxScrollX > 0) {
-                        int scrollX = (progress * maxScrollX) / 100;
-                        hsvBookingTable.scrollTo(scrollX, 0);
+                        hsvBookingTable.scrollTo((progress * maxScrollX) / 100, 0);
                     }
                 }
             }
@@ -113,19 +107,6 @@ public class BookingActivity extends AppCompatActivity {
             @Override public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            hsvBookingTable.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
-                if (hsvBookingTable.getChildAt(0) != null) {
-                    int maxScrollX = hsvBookingTable.getChildAt(0).getWidth() - hsvBookingTable.getWidth();
-                    if (maxScrollX > 0) {
-                        int progress = (scrollX * 100) / maxScrollX;
-                        zoomSlider.setProgress(progress);
-                    }
-                }
-            });
-        }
-
-        // 5. Lắng nghe sự thay đổi lựa chọn ca đánh
         adapter.setOnSelectionChangedListener(selectedCount -> {
             if (selectedCount > 0) {
                 long total = selectedCount * unitPrice;
@@ -135,12 +116,10 @@ public class BookingActivity extends AppCompatActivity {
             }
         });
 
-        // 6. Firebase init
         mDatabase = FirebaseDatabase.getInstance().getReference();
         Calendar c = Calendar.getInstance();
         updateDateDisplay(c.get(Calendar.DAY_OF_MONTH), c.get(Calendar.MONTH) + 1, c.get(Calendar.YEAR));
 
-        // 7. Sự kiện Click
         tvSelectedDate.setOnClickListener(v -> showDatePicker());
         btnBack.setOnClickListener(v -> finish());
         
@@ -150,7 +129,6 @@ public class BookingActivity extends AppCompatActivity {
                 Toast.makeText(this, "Vui lòng chọn ít nhất một ca đánh!", Toast.LENGTH_SHORT).show();
                 return;
             }
-            // Mở Bottom Sheet chọn dịch vụ
             showServicesBottomSheet(selected);
         });
 
@@ -173,9 +151,7 @@ public class BookingActivity extends AppCompatActivity {
                 serviceTotalAmount[0] = 0;
                 for (Map.Entry<String, Integer> entry : selectedServices.entrySet()) {
                     Service s = selectedVenue.getServices().get(entry.getKey());
-                    if (s != null) {
-                        serviceTotalAmount[0] += s.getPrice() * entry.getValue();
-                    }
+                    if (s != null) serviceTotalAmount[0] += s.getPrice() * entry.getValue();
                 }
                 tvServiceTotal.setText(String.format("%,dđ", serviceTotalAmount[0]));
             });
@@ -188,20 +164,16 @@ public class BookingActivity extends AppCompatActivity {
             });
         } else {
             rvServices.setVisibility(View.GONE);
-            tvServiceTotal.setText("0đ");
             btnConfirm.setOnClickListener(v -> {
                 bottomSheetDialog.dismiss();
                 navigateToPayment(selectedSlots, new HashMap<>(), 0);
             });
         }
-
         bottomSheetDialog.show();
     }
 
     private void navigateToPayment(Set<String> selectedSlots, Map<String, Integer> services, long serviceFee) {
-        long courtTotal = selectedSlots.size() * unitPrice;
-        long finalTotal = courtTotal + serviceFee;
-
+        long finalTotal = (selectedSlots.size() * unitPrice) + serviceFee;
         Intent intent = new Intent(BookingActivity.this, PaymentActivity.class);
         intent.putExtra("selected_venue", selectedVenue);
         intent.putExtra("selected_date", tvSelectedDate.getText().toString());
@@ -230,36 +202,24 @@ public class BookingActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 dayBookings.clear();
-                if (snapshot.exists()) {
-                    for (DataSnapshot data : snapshot.getChildren()) {
-                        Booking b = data.getValue(Booking.class);
-                        if (b != null && queryDate.equals(b.getBooking_date())) {
-                            dayBookings.add(b);
-                        }
+                for (DataSnapshot data : snapshot.getChildren()) {
+                    Booking b = data.getValue(Booking.class);
+                    if (b != null && queryDate.equals(b.getBooking_date())) {
+                        dayBookings.add(b);
                     }
                 }
                 adapter.setData(courtList, dayBookings);
             }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e("BookingActivity", "Firebase Error: " + error.getMessage());
-            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 
     private void showDatePicker() {
         final Calendar c = Calendar.getInstance();
-        int year = c.get(Calendar.YEAR);
-        int month = c.get(Calendar.MONTH);
-        int day = c.get(Calendar.DAY_OF_MONTH);
-
-        DatePickerDialog datePickerDialog = new DatePickerDialog(this,
-                (view, y, m, d) -> {
-                    updateDateDisplay(d, m + 1, y);
-                    fetchBookingsFromFirebase();
-                }, year, month, day);
-        datePickerDialog.show();
+        new DatePickerDialog(this, (view, y, m, d) -> {
+            updateDateDisplay(d, m + 1, y);
+            fetchBookingsFromFirebase();
+        }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
     }
 
     private void updateDateDisplay(int d, int m, int y) {

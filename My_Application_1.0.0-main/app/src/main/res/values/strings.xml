@@ -1,7 +1,0 @@
-<resources>
-    <string name="app_name">My Application</string>
-    <string name="login_title">Login</string>
-    <string name="tvUsername">Username</string>
-    <string name="tvPassword">Password</string>
-    <string name="btnlogin">Login</string>
-</resources>

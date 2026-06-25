@@ -6,7 +6,7 @@ import java.util.Map;
 public class Booking implements Serializable {
     private String account_id;
     private String venue_id;
-    private String venue_name; // THÊM TRƯỜNG NÀY
+    private String venue_name;
     private String court_id;
     private String court_name;
     private String booking_date;
@@ -23,15 +23,14 @@ public class Booking implements Serializable {
 
     public Booking() {}
 
-    // Getter và Setter cho venue_name
-    public String getVenue_name() { return venue_name; }
-    public void setVenue_name(String venue_name) { this.venue_name = venue_name; }
-
     public String getAccount_id() { return account_id; }
     public void setAccount_id(String account_id) { this.account_id = account_id; }
 
     public String getVenue_id() { return venue_id; }
     public void setVenue_id(String venue_id) { this.venue_id = venue_id; }
+
+    public String getVenue_name() { return venue_name; }
+    public void setVenue_name(String venue_name) { this.venue_name = venue_name; }
 
     public String getCourt_id() { return court_id; }
     public void setCourt_id(String court_id) { this.court_id = court_id; }

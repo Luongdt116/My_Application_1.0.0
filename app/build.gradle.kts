@@ -38,17 +38,18 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.firebase.database)
     implementation(libs.firebase.auth)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.ext.junit)
-    androidTestImplementation(libs.espresso.core)
-
-    // Retrofit
+    
+    // Retrofit & OkHttp
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:okhttp:4.6.0")
     
-    // RecyclerView
     implementation("androidx.recyclerview:recyclerview:1.4.0")
 
-    // ZaloPay SDK - THÊM DÒNG NÀY
-    implementation("com.github.zalopay-samples:zpdk-android-sdk:v2.3.1")
+    // ZaloPay SDK - Sử dụng file cục bộ trong thư mục libs
+    implementation(fileTree(mapOf(
+        "dir" to "D:\\Download\\APPcode\\BTN_AppMobile",
+        "include" to listOf("*.aar", "*.jar"),
+        "exclude" to listOf("")
+    )))
 }
