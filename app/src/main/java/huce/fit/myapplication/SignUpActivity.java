@@ -1,12 +1,14 @@
 package huce.fit.myapplication;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
@@ -22,6 +24,7 @@ public class SignUpActivity extends AppCompatActivity {
     private EditText edUsername, edEmail, edPassword, edRepassword, edPhone;
     private Button btnSignupAction;
     private TextView btnLoginRedirect;
+    private ImageView btnBack;
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
     private String dbUrl = "https://app-moblie-131d8-default-rtdb.firebaseio.com/";
@@ -34,6 +37,7 @@ public class SignUpActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance(dbUrl).getReference();
 
+        btnBack = findViewById(R.id.btnBack);
         edPhone = findViewById(R.id.edPhone);
         edEmail = findViewById(R.id.edEmail);
         edUsername = findViewById(R.id.edUsername);
@@ -41,6 +45,8 @@ public class SignUpActivity extends AppCompatActivity {
         edRepassword = findViewById(R.id.edRepassword);
         btnSignupAction = findViewById(R.id.btnSignupAction);
         btnLoginRedirect = findViewById(R.id.btnLoginRedirect);
+
+        if (btnBack != null) btnBack.setOnClickListener(v -> finish());
 
         if (btnSignupAction != null) {
             btnSignupAction.setOnClickListener(v -> {
@@ -51,7 +57,7 @@ public class SignUpActivity extends AppCompatActivity {
                 String rePassword = edRepassword.getText().toString().trim();
 
                 if (TextUtils.isEmpty(fullName) || TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
-                    Toast.makeText(this, "Vui lòng nhập đủ thông tin bắt buộc (*)", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Vui lòng nhập đủ các trường (*)", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -66,12 +72,12 @@ public class SignUpActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             String userId = mAuth.getCurrentUser().getUid();
                             
-                            // Cấu trúc Accounts khớp 100% với JSON của bạn
+                            // Lưu dữ liệu khớp 100% với JSON Accounts của bạn
                             Map<String, Object> userMap = new HashMap<>();
                             userMap.put("full_name", fullName);
                             userMap.put("phone", phone);
                             userMap.put("email", email);
-                            userMap.put("role", 1); // 1: Khách hàng
+                            userMap.put("role", 1); // 1: Khách hàng (như mẫu Trần Văn Biên)
                             userMap.put("status", 1); // 1: Hoạt động
                             userMap.put("created_at", System.currentTimeMillis());
 
@@ -79,17 +85,24 @@ public class SignUpActivity extends AppCompatActivity {
                                 .addOnSuccessListener(aVoid -> showSuccessDialog())
                                 .addOnFailureListener(e -> {
                                     btnSignupAction.setEnabled(true);
-                                    Toast.makeText(this, "Lỗi Firebase: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(this, "Lỗi lưu Database: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                                 });
                         } else {
                             btnSignupAction.setEnabled(true);
-                            Toast.makeText(this, "Lỗi đăng ký: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, "Lỗi: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                         }
                     });
             });
         }
 
-        if (btnLoginRedirect != null) btnLoginRedirect.setOnClickListener(v -> finish());
+        if (btnLoginRedirect != null) {
+            btnLoginRedirect.setOnClickListener(v -> {
+                Intent intent = new Intent(SignUpActivity.this, LoginActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+                finish();
+            });
+        }
     }
 
     private void showSuccessDialog() {
@@ -99,6 +112,7 @@ public class SignUpActivity extends AppCompatActivity {
         if (btnOk != null) {
             btnOk.setOnClickListener(v -> {
                 dialog.dismiss();
+                startActivity(new Intent(SignUpActivity.this, LoginActivity.class));
                 finish();
             });
         }

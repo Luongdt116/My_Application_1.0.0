@@ -90,22 +90,22 @@
                             <ImageView android:layout_width="60dp" android:layout_height="60dp" android:src="@drawable/logo" android:contentDescription="Avatar" />
                             <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:orientation="vertical">
                                 <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center_vertical">
-                                    <TextView android:id="@+id/tvProfileName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Nguyễn Văn A" android:textColor="@color/black" android:textStyle="bold" android:textSize="16sp" />
+                                    <TextView android:id="@+id/tvProfileName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="..." android:textColor="@color/black" android:textStyle="bold" android:textSize="16sp" />
                                     <ImageView android:id="@+id/btnEditProfile" android:layout_width="20dp" android:layout_height="20dp" android:layout_marginStart="8dp" android:src="@android:drawable/ic_menu_edit" app:tint="#D32F2F" android:contentDescription="Edit" />
                                 </LinearLayout>
-                                <TextView android:id="@+id/tvProfileEmail" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="abc@gmail.com" android:textColor="#666666" android:textSize="12sp" />
+                                <TextView android:id="@+id/tvProfileEmail" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="..." android:textColor="#666666" android:textSize="12sp" />
                             </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
-                <!-- KHỐI HOẠT ĐỘNG (Dùng ID layoutActivitySection để ẩn/hiện) -->
+                <!-- KHỐI HOẠT ĐỘNG -->
                 <LinearLayout
                     android:id="@+id/layoutActivitySection"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:visibility="visible">
+                    android:visibility="gone">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="20dp" android:text="Hoạt động" android:textColor="#09A459" android:textStyle="bold" />
                     <androidx.cardview.widget.CardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" app:cardBackgroundColor="@color/white" app:cardCornerRadius="12dp" app:cardElevation="4dp">
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
@@ -117,7 +117,7 @@
                             <View android:id="@+id/dividerNotification" android:layout_width="match_parent" android:layout_height="1dp" android:background="#F5F5F5" android:layout_marginHorizontal="16dp" />
                             <LinearLayout android:id="@+id/layoutNotification" android:layout_width="match_parent" android:layout_height="50dp" android:gravity="center_vertical" android:paddingHorizontal="16dp">
                                 <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_popup_reminder" app:tint="#09A459" />
-                                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:text="Thông báo" android:textColor="@color/black" />
+                                <TextView android:width="0dp" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:text="Thông báo" android:textColor="@color/black" />
                                 <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@android:drawable/ic_media_play" app:tint="#DDDDDD" />
                             </LinearLayout>
                         </LinearLayout>
