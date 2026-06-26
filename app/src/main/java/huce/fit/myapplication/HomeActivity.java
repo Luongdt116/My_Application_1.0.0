@@ -14,6 +14,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -26,14 +27,14 @@ import huce.fit.myapplication.objects.Venue;
 import huce.fit.myapplication.viewmodel.HomeViewModel;
 
 public class HomeActivity extends Fragment {
-    private TextView tvFullName;
-    private MaterialButton btnHomeLogin, btnHomeRegister; 
+    private TextView tvFullName, tvClearFilter;
+    private MaterialButton btnHomeLogin, btnHomeRegister, btnLoadMore; 
     private LinearLayout layoutAuthButtons;
     private RecyclerView rvFields;
     private FieldAdapter fieldAdapter;
     private HomeViewModel homeViewModel;
     private EditText etSearchHome;
-    private List<Venue> fullVenueList = new ArrayList<>();
+    private NestedScrollView scrollViewHome;
 
     @Nullable
     @Override
@@ -41,12 +42,15 @@ public class HomeActivity extends Fragment {
         View view = inflater.inflate(R.layout.home, container, false);
 
         // 1. Ánh xạ UI
+        scrollViewHome = view.findViewById(R.id.scrollViewHome);
         rvFields = view.findViewById(R.id.rvFields);
         btnHomeLogin = view.findViewById(R.id.btnHomeLogin);
         btnHomeRegister = view.findViewById(R.id.btnHomeRegister);
+        btnLoadMore = view.findViewById(R.id.btnLoadMore);
         layoutAuthButtons = view.findViewById(R.id.layoutAuthButtons);
         tvFullName = view.findViewById(R.id.tvUserName);
         etSearchHome = view.findViewById(R.id.etSearchHome);
+        tvClearFilter = view.findViewById(R.id.tvClearFilter);
 
         // 2. Thiết lập RecyclerView
         fieldAdapter = new FieldAdapter();
@@ -54,53 +58,69 @@ public class HomeActivity extends Fragment {
         rvFields.setAdapter(fieldAdapter);
         rvFields.setNestedScrollingEnabled(false);
 
-        // 3. Kết nối MVVM và Lắng nghe dữ liệu
+        // 3. Kết nối MVVM và Lắng nghe dữ liệu từ ViewModel
         homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
-        homeViewModel.getFields().observe(getViewLifecycleOwner(), venues -> {
+        
+        // Lắng nghe danh sách sân đã được phân trang và lọc
+        homeViewModel.getPaginatedFields().observe(getViewLifecycleOwner(), venues -> {
             if (venues != null) {
-                fullVenueList = venues;
                 fieldAdapter.setFields(venues);
             }
         });
 
-        // 4. Gọi lệnh tải dữ liệu
-        homeViewModel.fetchFieldsFromFirebase();
-
-        // 5. Thiết lập sự kiện Tìm kiếm
-        if (etSearchHome != null) {
-            etSearchHome.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    filterByName(s.toString());
-                }
-                @Override
-                public void afterTextChanged(Editable s) {}
-            });
-        }
-
-        // 6. Thiết lập các nút lọc môn thể thao
-        setupSportFilters(view);
-
-        // 7. Sự kiện Click cho từng sân
-        fieldAdapter.setOnFieldClickListener(new FieldAdapter.OnFieldClickListener() {
-            @Override
-            public void onBookClick(Venue venue) {
-                Intent intent = new Intent(getActivity(), BookingActivity.class);
-                intent.putExtra("selected_venue", venue);
-                startActivity(intent);
-            }
-
-            @Override
-            public void onItemClick(Venue venue) {
-                Intent intent = new Intent(getActivity(), BookingActivity.class);
-                intent.putExtra("selected_venue", venue);
-                startActivity(intent);
+        // Lắng nghe trạng thái ẩn/hiện nút Xem thêm
+        homeViewModel.getShowLoadMore().observe(getViewLifecycleOwner(), show -> {
+            if (btnLoadMore != null) {
+                btnLoadMore.setVisibility(show ? View.VISIBLE : View.GONE);
             }
         });
 
-        // 8. Auth Buttons
+        // Lắng nghe trạng thái nút Xóa lọc
+        homeViewModel.getShowClearFilter().observe(getViewLifecycleOwner(), show -> {
+            if (tvClearFilter != null) {
+                tvClearFilter.setVisibility(show ? View.VISIBLE : View.GONE);
+            }
+        });
+
+        // 4. Gọi lệnh tải dữ liệu ban đầu
+        homeViewModel.fetchFieldsFromFirebase();
+
+        // 5. Thiết lập sự kiện Tìm kiếm (Gửi query cho ViewModel xử lý)
+        if (etSearchHome != null) {
+            etSearchHome.addTextChangedListener(new TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    homeViewModel.search(s.toString());
+                    // Cuộn về đầu khi tìm kiếm
+                    if (scrollViewHome != null) scrollViewHome.smoothScrollTo(0, 0);
+                }
+                @Override public void afterTextChanged(Editable s) {}
+            });
+        }
+
+        // 6. Nút Xóa lọc
+        if (tvClearFilter != null) {
+            tvClearFilter.setOnClickListener(v -> {
+                etSearchHome.setText("");
+                homeViewModel.clearFilter();
+            });
+        }
+
+        // 7. Nút Xem thêm (Phân trang)
+        if (btnLoadMore != null) {
+            btnLoadMore.setOnClickListener(v -> homeViewModel.loadNextPage());
+        }
+
+        // 8. Thiết lập lọc nhanh qua Icon môn thể thao
+        setupSportFilters(view);
+
+        // 9. Sự kiện Click Item
+        fieldAdapter.setOnFieldClickListener(new FieldAdapter.OnFieldClickListener() {
+            @Override public void onBookClick(Venue venue) { goToBooking(venue); }
+            @Override public void onItemClick(Venue venue) { goToBooking(venue); }
+        });
+
+        // 10. Auth Buttons
         if (btnHomeLogin != null) btnHomeLogin.setOnClickListener(v -> startActivity(new Intent(getActivity(), LoginActivity.class)));
         if (btnHomeRegister != null) btnHomeRegister.setOnClickListener(v -> startActivity(new Intent(getActivity(), SignUpActivity.class)));
 
@@ -108,46 +128,27 @@ public class HomeActivity extends Fragment {
         return view;
     }
 
+    private void goToBooking(Venue venue) {
+        Intent intent = new Intent(getActivity(), BookingActivity.class);
+        intent.putExtra("selected_venue", venue);
+        startActivity(intent);
+    }
+
     private void setupSportFilters(View view) {
-        View pkb = view.findViewById(R.id.btnFilterPickleball);
-        View bd = view.findViewById(R.id.btnFilterBadminton);
-        View fb = view.findViewById(R.id.btnFilterFootball);
-        View tn = view.findViewById(R.id.btnFilterTennis);
-        View vb = view.findViewById(R.id.btnFilterVolleyball);
-        View bb = view.findViewById(R.id.btnFilterBasketball);
+        int[] ids = {R.id.btnFilterPickleball, R.id.btnFilterBadminton, R.id.btnFilterFootball, 
+                     R.id.btnFilterTennis, R.id.btnFilterVolleyball, R.id.btnFilterBasketball};
+        String[] sports = {"Pickleball", "Cầu lông", "Bóng đá", "Tennis", "Bóng chuyền", "Bóng rổ"};
 
-        if (pkb != null) pkb.setOnClickListener(v -> filterBySport("Pickleball"));
-        if (bd != null) bd.setOnClickListener(v -> filterBySport("Cầu lông"));
-        if (fb != null) fb.setOnClickListener(v -> filterBySport("Bóng đá"));
-        if (tn != null) tn.setOnClickListener(v -> filterBySport("Tennis"));
-        if (vb != null) vb.setOnClickListener(v -> filterBySport("Bóng chuyền"));
-        if (bb != null) bb.setOnClickListener(v -> filterBySport("Bóng rổ"));
-    }
-
-    private void filterByName(String query) {
-        List<Venue> filtered = new ArrayList<>();
-        for (Venue venue : fullVenueList) {
-            if (venue.getVenue_name().toLowerCase().contains(query.toLowerCase())) {
-                filtered.add(venue);
+        for (int i = 0; i < ids.length; i++) {
+            final String name = sports[i];
+            View btn = view.findViewById(ids[i]);
+            if (btn != null) {
+                btn.setOnClickListener(v -> {
+                    etSearchHome.setText(name);
+                    homeViewModel.search(name);
+                });
             }
         }
-        fieldAdapter.setFields(filtered);
-    }
-
-    private void filterBySport(String sport) {
-        List<Venue> filtered = new ArrayList<>();
-        for (Venue venue : fullVenueList) {
-            if (venue.getSport_name() != null && venue.getSport_name().toLowerCase().contains(sport.toLowerCase())) {
-                filtered.add(venue);
-            }
-        }
-        fieldAdapter.setFields(filtered);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        updateUIStatus();
     }
 
     private void updateUIStatus() {
@@ -164,5 +165,11 @@ public class HomeActivity extends Fragment {
             tvFullName.setVisibility(View.GONE);
             if (layoutAuthButtons != null) layoutAuthButtons.setVisibility(View.VISIBLE);
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateUIStatus();
     }
 }
