@@ -1,34 +1,28 @@
 package huce.fit.myapplication;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
+
 import com.google.android.material.button.MaterialButton;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import org.json.JSONObject;
 
-import huce.fit.myapplication.objects.Court;
 import huce.fit.myapplication.objects.Venue;
-import huce.fit.myapplication.util.CreateOrder;
-
+import huce.fit.myapplication.viewmodel.PaymentViewModel;
 import vn.zalopay.sdk.Environment;
 import vn.zalopay.sdk.ZaloPayError;
 import vn.zalopay.sdk.ZaloPaySDK;
@@ -46,10 +40,9 @@ public class PaymentActivity extends AppCompatActivity {
     private ArrayList<String> selectedSlots;
     private Map<String, Integer> selectedServices;
     private long totalPrice;
-
-    private DatabaseReference mDatabase;
-    private FirebaseAuth mAuth;
-    private String dbUrl = "https://app-moblie-131d8-default-rtdb.firebaseio.com/";
+    
+    private PaymentViewModel viewModel;
+    private String currentUserId;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -58,24 +51,36 @@ public class PaymentActivity extends AppCompatActivity {
 
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
+        // 1. Khởi tạo ZaloPay
         ZaloPaySDK.init(2554, Environment.SANDBOX);
 
-        mAuth = FirebaseAuth.getInstance();
-        // ĐẢM BẢO DÙNG ĐÚNG URL DATABASE ĐỂ LƯU BOOKING
-        mDatabase = FirebaseDatabase.getInstance(dbUrl).getReference();
+        // 2. Nhận dữ liệu từ Intent
+        getDataFromIntent();
 
+        // 3. Ánh xạ và thiết lập giao diện
+        initViews();
+        setupViewModel();
+        setupListeners();
+
+        // Hiển thị thông tin tóm tắt ban đầu
+        displayBookingInfo();
+    }
+
+    private void getDataFromIntent() {
         selectedVenue = (Venue) getIntent().getSerializableExtra("selected_venue");
         selectedDate = getIntent().getStringExtra("selected_date");
         selectedSlots = getIntent().getStringArrayListExtra("selected_slots");
         
         Object servicesObj = getIntent().getSerializableExtra("selected_services");
-        if (servicesObj instanceof Map) {
-            selectedServices = (Map<String, Integer>) servicesObj;
-        } else {
-            selectedServices = new HashMap<>();
-        }
+        selectedServices = (servicesObj instanceof Map) ? (Map<String, Integer>) servicesObj : new HashMap<>();
+        
         totalPrice = getIntent().getLongExtra("total_price", 0);
 
+        SharedPreferences pref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+        currentUserId = pref.getString("userId", "GUEST");
+    }
+
+    private void initViews() {
         tvVenueName = findViewById(R.id.tvPaymentVenueName);
         tvVenueAddress = findViewById(R.id.tvPaymentVenueAddress);
         tvDate = findViewById(R.id.tvPaymentDate);
@@ -86,152 +91,96 @@ public class PaymentActivity extends AppCompatActivity {
         etNote = findViewById(R.id.etPaymentNote);
         btnConfirm = findViewById(R.id.btnConfirmPayment);
         btnBack = findViewById(R.id.btnBackPayment);
-
-        if (selectedVenue != null) {
-            tvVenueName.setText("Tên CLB: " + selectedVenue.getVenue_name());
-            tvVenueAddress.setText("Địa chỉ: " + selectedVenue.getAddress_detail());
-            tvDate.setText("Ngày: " + selectedDate);
-            tvDetail.setText(formatBookingSummary(selectedSlots, selectedServices));
-            tvTotalPrice.setText(String.format(Locale.getDefault(), "Tổng tiền: %,dđ", totalPrice));
-        }
-
-        if (btnBack != null) btnBack.setOnClickListener(v -> finish());
-
-        if (btnConfirm != null) {
-            btnConfirm.setOnClickListener(v -> {
-                if (etName.getText().toString().trim().isEmpty() || etPhone.getText().toString().trim().isEmpty()) {
-                    Toast.makeText(this, "Vui lòng nhập tên và số điện thoại", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                requestZaloPay();
-            });
-        }
     }
 
-    private void requestZaloPay() {
-        CreateOrder orderApi = new CreateOrder();
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Handler handler = new Handler(Looper.getMainLooper());
+    private void setupViewModel() {
+        viewModel = new ViewModelProvider(this).get(PaymentViewModel.class);
 
-        executor.execute(() -> {
-            try {
-                JSONObject data = orderApi.createOrder(String.valueOf(totalPrice));
-                if (data == null) return;
+        // Lắng nghe Token từ ZaloPay
+        viewModel.getZaloToken().observe(this, token -> {
+            if (token != null) {
+                openZaloPayApp(token);
+            }
+        });
 
-                String code = data.getString("return_code");
-                handler.post(() -> {
-                    if (code.equals("1")) {
-                        try {
-                            String token = data.getString("zp_trans_token");
-                            ZaloPaySDK.getInstance().payOrder(PaymentActivity.this, token, "demozpdk://app", new PayOrderListener() {
-                                @Override
-                                public void onPaymentSucceeded(String transactionId, String transToken, String appTransID) {
-                                    saveBookingsToFirebase(appTransID);
-                                }
-                                @Override public void onPaymentCanceled(String zpTransToken, String appTransID) {
-                                    Toast.makeText(PaymentActivity.this, "Hủy thanh toán", Toast.LENGTH_SHORT).show();
-                                }
-                                @Override public void onPaymentError(ZaloPayError zaloPayError, String zpTransToken, String appTransID) {
-                                    Toast.makeText(PaymentActivity.this, "Lỗi: " + zaloPayError.toString(), Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                        } catch (Exception e) { e.printStackTrace(); }
-                    } else {
-                        Toast.makeText(PaymentActivity.this, "Tạo đơn thất bại", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            } catch (Exception e) {
-                handler.post(() -> Toast.makeText(PaymentActivity.this, "Lỗi hệ thống", Toast.LENGTH_SHORT).show());
-            } finally {
-                executor.shutdown();
+        // Lắng nghe trạng thái lưu Booking thành công
+        viewModel.getPaymentSuccess().observe(this, success -> {
+            if (success) {
+                Toast.makeText(this, "Đặt sân thành công!", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+                finish();
+            }
+        });
+
+        // Lắng nghe lỗi
+        viewModel.getError().observe(this, error -> {
+            if (error != null) {
+                Toast.makeText(this, "Lỗi: " + error, Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void saveBookingsToFirebase(String transactionId) {
-        String userId = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "GUEST";
-        long now = System.currentTimeMillis();
-        
-        // Chuyển ngày dd/MM/yyyy -> yyyy-MM-dd để đồng bộ với Database
-        String[] dateParts = selectedDate.split("/");
-        String firebaseDate = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0];
-
-        for (String slot : selectedSlots) {
-            String[] parts = slot.split("\\|");
-            String courtName = parts[0];
-            int hour = Integer.parseInt(parts[1]);
-
-            String courtId = "";
-            if (selectedVenue.getCourts() != null) {
-                for (Map.Entry<String, Court> entry : selectedVenue.getCourts().entrySet()) {
-                    if (entry.getValue().getName().equals(courtName)) {
-                        courtId = entry.getKey();
-                        break;
-                    }
-                }
-            }
-
-            Map<String, Object> bookingData = new HashMap<>();
-            bookingData.put("account_id", userId);
-            bookingData.put("venue_id", selectedVenue.getVenueId());
-            bookingData.put("venue_name", selectedVenue.getVenue_name());
-            bookingData.put("court_id", courtId);
-            bookingData.put("court_name", courtName);
-            bookingData.put("booking_date", firebaseDate);
-            bookingData.put("start_time", String.format(Locale.getDefault(), "%02d:00", hour));
-            bookingData.put("end_time", String.format(Locale.getDefault(), "%02d:00", hour + 1));
-            bookingData.put("status", 1); // 1: Đã đặt thành công
-            bookingData.put("created_at", now);
-            bookingData.put("customer_name", etName.getText().toString().trim());
-            bookingData.put("customer_phone", etPhone.getText().toString().trim());
-            bookingData.put("note", etNote.getText().toString().trim());
-            bookingData.put("selected_services", selectedServices);
-
-            Map<String, Object> paymentInfo = new HashMap<>();
-            paymentInfo.put("method", "ZaloPay");
-            paymentInfo.put("transaction_code", transactionId);
-            paymentInfo.put("payment_status", 1);
-            paymentInfo.put("amount", totalPrice / selectedSlots.size());
-            paymentInfo.put("paid_at", now);
+    private void displayBookingInfo() {
+        if (selectedVenue != null) {
+            tvVenueName.setText("Tên CLB: " + selectedVenue.getVenue_name());
+            tvVenueAddress.setText("Địa chỉ: " + selectedVenue.getAddress_detail());
+            tvDate.setText("Ngày: " + selectedDate);
+            tvTotalPrice.setText(String.format(Locale.getDefault(), "Tổng tiền: %,dđ", totalPrice));
             
-            bookingData.put("payment_info", paymentInfo);
-            
-            // LƯU VÀO NODE BOOKINGS
-            mDatabase.child("Bookings").push().setValue(bookingData);
+            // ViewModel lo việc format text tóm tắt
+            String summary = viewModel.formatSummary(selectedSlots, selectedServices, selectedVenue);
+            tvDetail.setText(summary);
         }
-
-        Toast.makeText(this, "Đặt sân thành công!", Toast.LENGTH_LONG).show();
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-        finish();
     }
 
-    private String formatBookingSummary(ArrayList<String> slots, Map<String, Integer> services) {
-        StringBuilder sb = new StringBuilder();
-        Map<String, List<Integer>> groupedSlots = new HashMap<>();
-        if (slots != null) {
-            for (String s : slots) {
-                String[] parts = s.split("\\|");
-                if (parts.length == 2) {
-                    String courtName = parts[0];
-                    int hour = Integer.parseInt(parts[1]);
-                    if (!groupedSlots.containsKey(courtName)) groupedSlots.put(courtName, new ArrayList<>());
-                    groupedSlots.get(courtName).add(hour);
+    private void setupListeners() {
+        if (btnBack != null) btnBack.setOnClickListener(v -> finish());
+
+        if (btnConfirm != null) {
+            btnConfirm.setOnClickListener(v -> {
+                String name = etName.getText().toString().trim();
+                String phone = etPhone.getText().toString().trim();
+                if (name.isEmpty() || phone.isEmpty()) {
+                    Toast.makeText(this, "Vui lòng nhập tên và số điện thoại", Toast.LENGTH_SHORT).show();
+                    return;
                 }
-            }
+                // Bắt đầu quy trình thanh toán qua ViewModel
+                viewModel.createZaloPayOrder(totalPrice);
+            });
         }
-        for (Map.Entry<String, List<Integer>> entry : groupedSlots.entrySet()) {
-            sb.append("- ").append(entry.getKey()).append(": ");
-            List<Integer> hours = entry.getValue();
-            Collections.sort(hours);
-            for (int i = 0; i < hours.size(); i++) {
-                int h = hours.get(i);
-                sb.append(h).append("h-").append(h + 1).append("h");
-                if (i < hours.size() - 1) sb.append(", ");
+    }
+
+    private void openZaloPayApp(String token) {
+        ZaloPaySDK.getInstance().payOrder(this, token, "demozpdk://app", new PayOrderListener() {
+            @Override
+            public void onPaymentSucceeded(String transactionId, String transToken, String appTransID) {
+                // Thanh toán app thành công -> Bảo ViewModel lưu vào Firebase
+                viewModel.saveBookings(
+                        currentUserId, selectedVenue, selectedDate, selectedSlots, 
+                        selectedServices, totalPrice, appTransID,
+                        etName.getText().toString().trim(),
+                        etPhone.getText().toString().trim(),
+                        etNote.getText().toString().trim()
+                );
             }
-            sb.append("\n");
-        }
-        return sb.toString().trim();
+
+            @Override
+            public void onPaymentCanceled(String zpTransToken, String appTransID) {
+                Toast.makeText(PaymentActivity.this, "Hủy thanh toán", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onPaymentError(ZaloPayError zaloPayError, String zpTransToken, String appTransID) {
+                Toast.makeText(PaymentActivity.this, "Lỗi thanh toán: " + zaloPayError.toString(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        ZaloPaySDK.getInstance().onResult(intent);
     }
 }

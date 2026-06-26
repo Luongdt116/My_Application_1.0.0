@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F0F9F4">
+
+    <!-- Header Toolbar -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbarBooking"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:background="#09A459"
+        app:layout_constraintTop_toTopOf="parent">
+        <RelativeLayout android:layout_width="match_parent" android:layout_height="match_parent">
+            <ImageView android:id="@+id/btnBackBooking" android:layout_width="30dp" android:layout_height="30dp" android:layout_centerVertical="true" android:src="@android:drawable/ic_menu_revert" app:tint="@color/white" />
+            <TextView android:id="@+id/tvVenueNameBooking" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerInParent="true" android:textColor="@color/white" android:textSize="16sp" android:textStyle="bold" />
+        </RelativeLayout>
+    </androidx.appcompat.widget.Toolbar>
+
+    <!-- Sidebar Info (Left side in landscape) -->
+    <LinearLayout
+        android:id="@+id/layoutSideInfo"
+        android:layout_width="160dp"
+        android:layout_height="0dp"
+        android:background="#065F36"
+        android:orientation="vertical"
+        android:padding="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbarBooking">
+
+        <TextView android:id="@+id/tvSelectedDate" 
+            android:layout_width="match_parent" 
+            android:layout_height="wrap_content" 
+            android:background="@drawable/custom_edittext"
+            android:backgroundTint="#2E7D32"
+            android:gravity="center"
+            android:padding="6dp"
+            android:textColor="@color/white"
+            android:textSize="12sp" />
+
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#44FFFFFF" android:layout_marginVertical="10dp"/>
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="■ Trống" android:textColor="@color/white" android:textSize="10sp" android:layout_marginBottom="4dp"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="■ Đã đặt" android:textColor="#E53935" android:textSize="10sp" android:layout_marginBottom="4dp"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="■ Đang chọn" android:textColor="#FF9800" android:textSize="10sp" />
+        
+        <View android:layout_weight="1" android:layout_width="match_parent" android:layout_height="0dp"/>
+
+        <com.google.android.material.button.MaterialButton 
+            android:id="@+id/btnNext" 
+            android:layout_width="match_parent" 
+            android:layout_height="wrap_content" 
+            android:backgroundTint="#FFB300" 
+            android:text="TIẾP THEO" 
+            android:textColor="@color/black" 
+            android:textSize="10sp"
+            android:textStyle="bold" 
+            app:cornerRadius="8dp" />
+    </LinearLayout>
+
+    <!-- Main Table Area (Right side) -->
+    <HorizontalScrollView
+        android:id="@+id/hsvBookingTable"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@id/zoomSlider"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/layoutSideInfo"
+        app:layout_constraintTop_toBottomOf="@id/toolbarBooking">
+        <androidx.recyclerview.widget.RecyclerView 
+            android:id="@+id/rvBookingCourts" 
+            android:layout_width="wrap_content" 
+            android:layout_height="match_parent" />
+    </HorizontalScrollView>
+
+    <SeekBar android:id="@+id/zoomSlider" 
+        android:layout_width="150dp" 
+        android:layout_height="wrap_content" 
+        app:layout_constraintBottom_toBottomOf="parent" 
+        app:layout_constraintEnd_toEndOf="parent" 
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

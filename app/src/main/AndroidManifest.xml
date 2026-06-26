@@ -24,15 +24,22 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".LoginActivity" />
-        <activity android:name=".SignUpActivity" />
+        <activity 
+            android:name=".LoginActivity"
+            android:windowSoftInputMode="adjustResize" />
+        
+        <activity 
+            android:name=".SignUpActivity"
+            android:windowSoftInputMode="adjustResize" />
+            
         <activity android:name=".ForgotPasswordActivity" />
         <activity android:name=".BookingActivity" />
 
         <activity 
             android:name=".PaymentActivity"
             android:exported="true"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -44,7 +51,11 @@
 
         <activity android:name=".HistoryActivity" />
         <activity android:name=".LicenseActivity" />
-        <activity android:name=".EditProfileActivity" />
+        
+        <activity 
+            android:name=".EditProfileActivity"
+            android:windowSoftInputMode="adjustResize" />
+            
         <activity android:name=".ChangePasswordActivity" />
 
     </application>

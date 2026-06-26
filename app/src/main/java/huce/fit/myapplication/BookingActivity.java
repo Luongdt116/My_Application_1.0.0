@@ -3,7 +3,6 @@ package huce.fit.myapplication;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
@@ -11,34 +10,27 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import huce.fit.myapplication.adapter.CourtBookingAdapter;
 import huce.fit.myapplication.adapter.ServiceAdapter;
-import huce.fit.myapplication.objects.Booking;
-import huce.fit.myapplication.objects.Court;
 import huce.fit.myapplication.objects.Service;
 import huce.fit.myapplication.objects.Venue;
+import huce.fit.myapplication.viewmodel.BookingViewModel;
 
 public class BookingActivity extends AppCompatActivity {
 
@@ -48,15 +40,11 @@ public class BookingActivity extends AppCompatActivity {
     private RecyclerView rvBookingCourts;
     private HorizontalScrollView hsvBookingTable;
     private SeekBar zoomSlider;
+    
     private CourtBookingAdapter adapter;
     private Venue selectedVenue;
-    private DatabaseReference mDatabase;
-    private List<Booking> dayBookings = new ArrayList<>();
-    private List<Court> courtList = new ArrayList<>();
-    
+    private BookingViewModel bookingViewModel;
     private long unitPrice = 0;
-    // Đảm bảo URL này khớp 100% với Database của bạn
-    private String dbUrl = "https://app-moblie-131d8-default-rtdb.firebaseio.com/";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -67,14 +55,21 @@ public class BookingActivity extends AppCompatActivity {
 
         selectedVenue = (Venue) getIntent().getSerializableExtra("selected_venue");
         if (selectedVenue == null) {
-            Toast.makeText(this, "Không tìm thấy thông tin sân!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Lỗi: Không nhận được dữ liệu!", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        // Khởi tạo Database với URL chính xác
-        mDatabase = FirebaseDatabase.getInstance(dbUrl).getReference();
+        initViews();
+        setupViewModel();
+        setupListeners();
+        
+        // Tải dữ liệu ban đầu
+        bookingViewModel.loadCourts(selectedVenue.getVenueId());
+        refreshBookings();
+    }
 
+    private void initViews() {
         tvSelectedDate = findViewById(R.id.tvSelectedDate);
         tvVenueName = findViewById(R.id.tvVenueNameBooking);
         btnBack = findViewById(R.id.btnBackBooking);
@@ -84,18 +79,51 @@ public class BookingActivity extends AppCompatActivity {
         zoomSlider = findViewById(R.id.zoomSlider);
 
         tvVenueName.setText(selectedVenue.getVenue_name());
+        if (selectedVenue.getVenue_prices() != null && !selectedVenue.getVenue_prices().isEmpty()) {
+            unitPrice = selectedVenue.getVenue_prices().values().iterator().next().fixed_price;
+        }
 
         adapter = new CourtBookingAdapter();
         rvBookingCourts.setLayoutManager(new LinearLayoutManager(this));
         rvBookingCourts.setAdapter(adapter);
 
-        if (selectedVenue.getVenue_prices() != null && !selectedVenue.getVenue_prices().isEmpty()) {
-            unitPrice = selectedVenue.getVenue_prices().values().iterator().next().fixed_price;
-        }
+        Calendar c = Calendar.getInstance();
+        updateDateDisplay(c.get(Calendar.DAY_OF_MONTH), c.get(Calendar.MONTH) + 1, c.get(Calendar.YEAR));
+    }
 
-        adapter.setOnSelectionChangedListener(selectedCount -> {
-            if (selectedCount > 0) {
-                btnNext.setText("TIẾP THEO (" + selectedCount + " ca - " + String.format("%,d", selectedCount * unitPrice) + "đ)");
+    private void setupViewModel() {
+        bookingViewModel = new ViewModelProvider(this).get(BookingViewModel.class);
+
+        // Lắng nghe danh sách sân con
+        bookingViewModel.getCourtList().observe(this, courts -> {
+            if (courts != null) {
+                adapter.setData(courts, bookingViewModel.getDayBookings().getValue());
+            }
+        });
+
+        // Lắng nghe danh sách ca đã đặt
+        bookingViewModel.getDayBookings().observe(this, bookings -> {
+            if (bookings != null) {
+                adapter.setData(bookingViewModel.getCourtList().getValue(), bookings);
+            }
+        });
+    }
+
+    private void setupListeners() {
+        tvSelectedDate.setOnClickListener(v -> showDatePicker());
+        btnBack.setOnClickListener(v -> finish());
+        
+        btnNext.setOnClickListener(v -> {
+            if (adapter.getSelectedSlots().isEmpty()) {
+                Toast.makeText(this, "Vui lòng chọn ít nhất một ca!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            showServicesBottomSheet();
+        });
+
+        adapter.setOnSelectionChangedListener(count -> {
+            if (count > 0) {
+                btnNext.setText("TIẾP THEO (" + count + " ca - " + String.format("%,d", count * unitPrice) + "đ)");
             } else {
                 btnNext.setText("TIẾP THEO");
             }
@@ -112,77 +140,10 @@ public class BookingActivity extends AppCompatActivity {
             @Override public void onStartTrackingTouch(SeekBar seekBar) {}
             @Override public void onStopTrackingTouch(SeekBar seekBar) {}
         });
-
-        Calendar c = Calendar.getInstance();
-        updateDateDisplay(c.get(Calendar.DAY_OF_MONTH), c.get(Calendar.MONTH) + 1, c.get(Calendar.YEAR));
-
-        tvSelectedDate.setOnClickListener(v -> showDatePicker());
-        btnBack.setOnClickListener(v -> finish());
-        btnNext.setOnClickListener(v -> handleNextStep());
-
-        loadData();
     }
 
-    private void loadData() {
-        Log.d("FIREBASE_LOG", "Đang tải sân cho Venue: " + selectedVenue.getVenueId());
-        
-        // Tải danh sách sân (courts) trực tiếp từ Venues/{venue_id}/courts như trong JSON của bạn
-        mDatabase.child("Venues").child(selectedVenue.getVenueId()).child("courts")
-            .addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    courtList.clear();
-                    if (snapshot.exists()) {
-                        for (DataSnapshot data : snapshot.getChildren()) {
-                            Court court = data.getValue(Court.class);
-                            if (court != null) courtList.add(court);
-                        }
-                        Log.d("FIREBASE_LOG", "Đã nạp " + courtList.size() + " sân");
-                        fetchBookingsFromFirebase();
-                    } else {
-                        Log.e("FIREBASE_LOG", "Không thấy node 'courts' tại ID: " + selectedVenue.getVenueId());
-                        Toast.makeText(BookingActivity.this, "Sân này chưa cập nhật danh sách ca tập!", Toast.LENGTH_SHORT).show();
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    Log.e("FIREBASE_LOG", "Lỗi nạp sân: " + error.getMessage());
-                }
-            });
-    }
-
-    private void fetchBookingsFromFirebase() {
-        String dateStr = tvSelectedDate.getText().toString();
-        String[] parts = dateStr.split("/");
-        String queryDate = parts[2] + "-" + parts[1] + "-" + parts[0];
-
-        mDatabase.child("Bookings")
-                .orderByChild("venue_id").equalTo(selectedVenue.getVenueId())
-                .addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                dayBookings.clear();
-                for (DataSnapshot data : snapshot.getChildren()) {
-                    Booking b = data.getValue(Booking.class);
-                    if (b != null && queryDate.equals(b.getBooking_date())) {
-                        dayBookings.add(b);
-                    }
-                }
-                adapter.setData(courtList, dayBookings);
-            }
-            @Override public void onCancelled(@NonNull DatabaseError error) {
-                Log.e("FIREBASE_LOG", "Lỗi nạp lịch đặt: " + error.getMessage());
-            }
-        });
-    }
-
-    private void handleNextStep() {
-        if (adapter.getSelectedSlots().isEmpty()) {
-            Toast.makeText(this, "Vui lòng chọn ít nhất một ca tập!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        showServicesBottomSheet();
+    private void refreshBookings() {
+        bookingViewModel.loadBookings(selectedVenue.getVenueId(), tvSelectedDate.getText().toString());
     }
 
     private void showServicesBottomSheet() {
@@ -236,7 +197,7 @@ public class BookingActivity extends AppCompatActivity {
         Calendar c = Calendar.getInstance();
         new DatePickerDialog(this, (view, y, m, d) -> {
             updateDateDisplay(d, m + 1, y);
-            fetchBookingsFromFirebase();
+            refreshBookings();
         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
     }
 

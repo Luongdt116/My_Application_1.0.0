@@ -11,32 +11,31 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import java.util.HashMap;
-import java.util.Map;
+import huce.fit.myapplication.viewmodel.SignUpViewModel;
 
 public class SignUpActivity extends AppCompatActivity {
     private EditText edUsername, edEmail, edPassword, edRepassword, edPhone;
     private Button btnSignupAction;
     private TextView btnLoginRedirect;
     private ImageView btnBack;
-    private FirebaseAuth mAuth;
-    private DatabaseReference mDatabase;
-    private String dbUrl = "https://app-moblie-131d8-default-rtdb.firebaseio.com/";
+    private SignUpViewModel signUpViewModel;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.signup_activity);
 
-        mAuth = FirebaseAuth.getInstance();
-        mDatabase = FirebaseDatabase.getInstance(dbUrl).getReference();
+        initViews();
+        setupViewModel();
+        setupListeners();
+    }
 
+    private void initViews() {
         btnBack = findViewById(R.id.btnBack);
         edPhone = findViewById(R.id.edPhone);
         edEmail = findViewById(R.id.edEmail);
@@ -45,8 +44,31 @@ public class SignUpActivity extends AppCompatActivity {
         edRepassword = findViewById(R.id.edRepassword);
         btnSignupAction = findViewById(R.id.btnSignupAction);
         btnLoginRedirect = findViewById(R.id.btnLoginRedirect);
+    }
 
-        if (btnBack != null) btnBack.setOnClickListener(v -> finish());
+    private void setupViewModel() {
+        signUpViewModel = new ViewModelProvider(this).get(SignUpViewModel.class);
+
+        // Lắng nghe sự kiện đăng ký thành công
+        signUpViewModel.getSignUpSuccess().observe(this, success -> {
+            if (success) {
+                showSuccessDialog();
+            }
+        });
+
+        // Lắng nghe thông báo lỗi
+        signUpViewModel.getSignUpError().observe(this, errorMsg -> {
+            if (errorMsg != null) {
+                btnSignupAction.setEnabled(true);
+                Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void setupListeners() {
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> finish());
+        }
 
         if (btnSignupAction != null) {
             btnSignupAction.setOnClickListener(v -> {
@@ -56,42 +78,10 @@ public class SignUpActivity extends AppCompatActivity {
                 String password = edPassword.getText().toString().trim();
                 String rePassword = edRepassword.getText().toString().trim();
 
-                if (TextUtils.isEmpty(fullName) || TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
-                    Toast.makeText(this, "Vui lòng nhập đủ các trường (*)", Toast.LENGTH_SHORT).show();
-                    return;
+                if (validateInput(fullName, email, password, rePassword)) {
+                    btnSignupAction.setEnabled(false);
+                    signUpViewModel.signUp(email, password, fullName, phone);
                 }
-
-                if (!password.equals(rePassword)) {
-                    edRepassword.setError("Mật khẩu không khớp!");
-                    return;
-                }
-
-                btnSignupAction.setEnabled(false);
-                mAuth.createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(this, task -> {
-                        if (task.isSuccessful()) {
-                            String userId = mAuth.getCurrentUser().getUid();
-                            
-                            // Lưu dữ liệu khớp 100% với JSON Accounts của bạn
-                            Map<String, Object> userMap = new HashMap<>();
-                            userMap.put("full_name", fullName);
-                            userMap.put("phone", phone);
-                            userMap.put("email", email);
-                            userMap.put("role", 1); // 1: Khách hàng (như mẫu Trần Văn Biên)
-                            userMap.put("status", 1); // 1: Hoạt động
-                            userMap.put("created_at", System.currentTimeMillis());
-
-                            mDatabase.child("Accounts").child(userId).setValue(userMap)
-                                .addOnSuccessListener(aVoid -> showSuccessDialog())
-                                .addOnFailureListener(e -> {
-                                    btnSignupAction.setEnabled(true);
-                                    Toast.makeText(this, "Lỗi lưu Database: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                });
-                        } else {
-                            btnSignupAction.setEnabled(true);
-                            Toast.makeText(this, "Lỗi: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
-                        }
-                    });
             });
         }
 
@@ -103,6 +93,22 @@ public class SignUpActivity extends AppCompatActivity {
                 finish();
             });
         }
+    }
+
+    private boolean validateInput(String name, String email, String pass, String rePass) {
+        if (TextUtils.isEmpty(name) || TextUtils.isEmpty(email) || TextUtils.isEmpty(pass)) {
+            Toast.makeText(this, "Vui lòng nhập đủ các trường có dấu (*)", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (!pass.equals(rePass)) {
+            edRepassword.setError("Mật khẩu không khớp!");
+            return false;
+        }
+        if (pass.length() < 6) {
+            edPassword.setError("Mật khẩu tối thiểu 6 ký tự");
+            return false;
+        }
+        return true;
     }
 
     private void showSuccessDialog() {

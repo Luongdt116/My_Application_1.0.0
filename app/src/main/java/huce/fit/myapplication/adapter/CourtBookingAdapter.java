@@ -31,8 +31,8 @@ public class CourtBookingAdapter extends RecyclerView.Adapter<CourtBookingAdapte
     }
 
     public void setData(List<Court> courts, List<Booking> bookings) {
-        this.courtList = courts;
-        this.bookingList = bookings;
+        this.courtList = (courts != null) ? courts : new ArrayList<>();
+        this.bookingList = (bookings != null) ? bookings : new ArrayList<>();
         notifyDataSetChanged();
     }
 
@@ -54,6 +54,8 @@ public class CourtBookingAdapter extends RecyclerView.Adapter<CourtBookingAdapte
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        if (courtList == null || courtList.isEmpty()) return;
+        
         Court court = courtList.get(position);
         holder.tvCourtName.setText(court.getName());
         
@@ -86,7 +88,7 @@ public class CourtBookingAdapter extends RecyclerView.Adapter<CourtBookingAdapte
                     if (listener != null) listener.onSelectionChanged(selectedSlots.size());
                 });
             } else {
-                slotTv.setBackgroundColor(Color.parseColor("#F5F5F5")); // Trắng xám: Trống
+                slotTv.setBackgroundColor(Color.parseColor("#F5F5F5")); // Trống
                 slotTv.setTextColor(Color.BLACK);
                 slotTv.setOnClickListener(v -> {
                     selectedSlots.add(selectionKey);
@@ -113,7 +115,7 @@ public class CourtBookingAdapter extends RecyclerView.Adapter<CourtBookingAdapte
 
     @Override
     public int getItemCount() {
-        return courtList.size();
+        return courtList != null ? courtList.size() : 0;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
