@@ -40,7 +40,8 @@ public class DiscoveryActivity extends Fragment {
 
         // 3. Kết nối ViewModel và Lắng nghe dữ liệu
         discoveryViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
-        discoveryViewModel.getFields().observe(getViewLifecycleOwner(), venues -> {
+        // Sửa lỗi: getFields() -> getDisplayList() theo chuẩn MVVM mới của HomeViewModel
+        discoveryViewModel.getDisplayList().observe(getViewLifecycleOwner(), venues -> {
             if (venues != null) {
                 fieldAdapter.setFields(venues);
             }
