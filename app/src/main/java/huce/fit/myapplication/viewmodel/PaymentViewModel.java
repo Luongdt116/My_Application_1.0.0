@@ -17,6 +17,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import huce.fit.myapplication.objects.Court;
 import huce.fit.myapplication.objects.Venue;
@@ -39,7 +40,6 @@ public class PaymentViewModel extends ViewModel {
     public LiveData<Boolean> getPaymentSuccess() { return mPaymentSuccess; }
     public LiveData<String> getError() { return mError; }
 
-    // Logic tạo đơn hàng ZaloPay
     public void createZaloPayOrder(long amount) {
         CreateOrder orderApi = new CreateOrder();
         ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -57,7 +57,6 @@ public class PaymentViewModel extends ViewModel {
         });
     }
 
-    // Logic lưu Booking vào Firebase (Sau khi thanh toán xong)
     public void saveBookings(String userId, Venue venue, String date, ArrayList<String> slots, 
                              Map<String, Integer> services, long total, String transId, 
                              String name, String phone, String note) {
@@ -65,6 +64,9 @@ public class PaymentViewModel extends ViewModel {
         long now = System.currentTimeMillis();
         String[] dateParts = date.split("/");
         String firebaseDate = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0];
+
+        final int totalSlots = slots.size();
+        final AtomicInteger savedCount = new AtomicInteger(0);
 
         for (String slot : slots) {
             String[] parts = slot.split("\\|");
@@ -101,16 +103,20 @@ public class PaymentViewModel extends ViewModel {
             paymentInfo.put("method", "ZaloPay");
             paymentInfo.put("transaction_code", transId);
             paymentInfo.put("payment_status", 1);
-            paymentInfo.put("amount", total / slots.size());
+            paymentInfo.put("amount", total / totalSlots);
             paymentInfo.put("paid_at", now);
             bookingData.put("payment_info", paymentInfo);
 
-            mDatabase.child("Bookings").push().setValue(bookingData);
+            // Đảm bảo dữ liệu được lưu thành công mới báo về UI
+            mDatabase.child("Bookings").push().setValue(bookingData)
+                .addOnCompleteListener(task -> {
+                    if (savedCount.incrementAndGet() == totalSlots) {
+                        mPaymentSuccess.setValue(true);
+                    }
+                });
         }
-        mPaymentSuccess.setValue(true);
     }
 
-    // Logic định dạng chuỗi hiển thị
     public String formatSummary(ArrayList<String> slots, Map<String, Integer> services, Venue venue) {
         StringBuilder sb = new StringBuilder();
         Map<String, List<Integer>> groupedSlots = new HashMap<>();

@@ -16,6 +16,11 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.firebase.auth.FirebaseAuth;
+
 import huce.fit.myapplication.viewmodel.ProfileViewModel;
 
 public class ProfileActivity extends Fragment {
@@ -26,18 +31,27 @@ public class ProfileActivity extends Fragment {
     private ImageView btnEditProfile;
     
     private ProfileViewModel profileViewModel;
+    private GoogleSignInClient mGoogleSignInClient;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.profile, container, false);
 
+        initGoogleSignInClient();
         initViews(view);
         setupViewModel();
         setupListeners();
 
         updateUIStatus();
         return view;
+    }
+
+    private void initGoogleSignInClient() {
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
+        mGoogleSignInClient = GoogleSignIn.getClient(requireActivity(), gso);
     }
 
     private void initViews(View view) {
@@ -60,21 +74,16 @@ public class ProfileActivity extends Fragment {
     private void setupViewModel() {
         profileViewModel = new ViewModelProvider(this).get(ProfileViewModel.class);
 
-        // Lắng nghe dữ liệu người dùng từ ViewModel
         profileViewModel.getUserData().observe(getViewLifecycleOwner(), data -> {
             if (data != null) {
                 String name = data.get("name");
                 String email = data.get("email");
-
                 if (tvProfileName != null && name != null) tvProfileName.setText(name);
                 if (tvProfileEmail != null && email != null) tvProfileEmail.setText(email);
-
-                // Cập nhật SharedPreferences để đồng bộ
                 saveUserToPrefs(name, email);
             }
         });
 
-        // Lắng nghe sự kiện đăng xuất
         profileViewModel.getIsLoggedOut().observe(getViewLifecycleOwner(), loggedOut -> {
             if (loggedOut) {
                 performLogout();
@@ -97,11 +106,18 @@ public class ProfileActivity extends Fragment {
     }
 
     private void performLogout() {
-        if (getActivity() == null) return;
-        SharedPreferences pref = getActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
-        pref.edit().clear().apply();
-        updateUIStatus();
-        Toast.makeText(getActivity(), "Đã đăng xuất", Toast.LENGTH_SHORT).show();
+        // 1. Đăng xuất khỏi Firebase Auth
+        FirebaseAuth.getInstance().signOut();
+
+        // 2. Đăng xuất khỏi Google (Ép buộc hiện lại bảng chọn tài khoản lần sau)
+        mGoogleSignInClient.signOut().addOnCompleteListener(requireActivity(), task -> {
+            // 3. Xóa SharedPreferences
+            SharedPreferences pref = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+            pref.edit().clear().apply();
+            
+            updateUIStatus();
+            Toast.makeText(getActivity(), "Đã đăng xuất", Toast.LENGTH_SHORT).show();
+        });
     }
 
     private void saveUserToPrefs(String name, String email) {
@@ -122,19 +138,13 @@ public class ProfileActivity extends Fragment {
         boolean isLoggedIn = pref.getBoolean("isLoggedIn", false);
         String userId = pref.getString("userId", "");
         String username = pref.getString("username", "");
-        String email = pref.getString("email", "");
 
         if (isLoggedIn && !userId.isEmpty()) {
             layoutLoggedIn.setVisibility(View.VISIBLE);
             layoutNotLoggedIn.setVisibility(View.GONE);
             layoutActivitySection.setVisibility(View.VISIBLE);
             layoutPrivateSystem.setVisibility(View.VISIBLE);
-            
-            // Hiển thị ngay từ bộ nhớ tạm
             tvProfileName.setText(username.isEmpty() ? "Người dùng" : username);
-            tvProfileEmail.setText(email.isEmpty() ? "..." : email);
-            
-            // Bảo ViewModel tải dữ liệu mới nhất
             profileViewModel.fetchUserInfo(userId);
         } else {
             layoutLoggedIn.setVisibility(View.GONE);

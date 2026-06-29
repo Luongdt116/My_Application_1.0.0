@@ -15,6 +15,7 @@ import huce.fit.myapplication.repository.FieldRepository;
 
 public class HomeViewModel extends ViewModel {
     private final MutableLiveData<List<Venue>> mDisplayList = new MutableLiveData<>();
+    private final MutableLiveData<List<Venue>> mPromotedList = new MutableLiveData<>();
     private final MutableLiveData<Boolean> mShowLoadMore = new MutableLiveData<>();
     private final MutableLiveData<Boolean> mShowClearFilter = new MutableLiveData<>();
     private final MutableLiveData<Boolean> mIsLoading = new MutableLiveData<>();
@@ -34,6 +35,7 @@ public class HomeViewModel extends ViewModel {
     }
 
     public LiveData<List<Venue>> getDisplayList() { return mDisplayList; }
+    public LiveData<List<Venue>> getPromotedFields() { return mPromotedList; }
     public LiveData<Boolean> getShowLoadMore() { return mShowLoadMore; }
     public LiveData<Boolean> getShowClearFilter() { return mShowClearFilter; }
     public LiveData<Boolean> getIsLoading() { return mIsLoading; }
@@ -51,12 +53,34 @@ public class HomeViewModel extends ViewModel {
 
     public void fetchFieldsFromFirebase() {
         if (!mAllVenues.isEmpty()) return;
+        refreshFields();
+    }
+
+    // Ép buộc tải lại dữ liệu (Dùng cho Swipe Refresh)
+    public void refreshFields() {
         mIsLoading.setValue(true);
         mFieldRepository.fetchAllFields(new FieldRepository.OnDataLoaded() {
             @Override
             public void onSuccess(List<Venue> venueList) {
                 mAllVenues = venueList;
                 applyFilterAndResetPagination();
+                mIsLoading.setValue(false);
+            }
+            @Override public void onFailure(String error) { mIsLoading.setValue(false); }
+        });
+    }
+
+    public void fetchPromotedFieldsFromFirebase() {
+        refreshPromotedFields();
+    }
+
+    // Ép buộc tải lại khuyến mãi
+    public void refreshPromotedFields() {
+        mIsLoading.setValue(true);
+        mFieldRepository.fetchPromotedFields(new FieldRepository.OnDataLoaded() {
+            @Override
+            public void onSuccess(List<Venue> venueList) {
+                mPromotedList.setValue(venueList);
                 mIsLoading.setValue(false);
             }
             @Override public void onFailure(String error) { mIsLoading.setValue(false); }

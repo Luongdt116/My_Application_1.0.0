@@ -15,10 +15,10 @@ import huce.fit.myapplication.objects.Venue;
 
 public class FieldRepository {
     private DatabaseReference mDatabase;
-    private static final String TAG = "FIREBASE_CHECK";
+    private static final String TAG = "FIREBASE_LOG";
+    private final String dbUrl = "https://app-moblie-131d8-default-rtdb.firebaseio.com/";
 
     public FieldRepository() {
-        String dbUrl = "https://app-moblie-131d8-default-rtdb.firebaseio.com/";
         try {
             mDatabase = FirebaseDatabase.getInstance(dbUrl).getReference();
         } catch (Exception e) {
@@ -32,75 +32,59 @@ public class FieldRepository {
     }
 
     public void fetchAllFields(OnDataLoaded callback) {
-        mDatabase.child("Venues").addValueEventListener(new ValueEventListener() {
+        mDatabase.child("Venues").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<Venue> venueList = new ArrayList<>();
-                if (snapshot.exists()) {
-                    for (DataSnapshot data : snapshot.getChildren()) {
-                        try {
-                            Venue venue = data.getValue(Venue.class);
-                            if (venue != null && venue.getStatus() == 1) {
-                                venue.setVenueId(data.getKey());
-                                venueList.add(venue);
-                            }
-                        } catch (Exception e) {
-                            Log.e(TAG, "Lỗi nạp dữ liệu: " + e.getMessage());
-                        }
+                for (DataSnapshot data : snapshot.getChildren()) {
+                    Venue venue = data.getValue(Venue.class);
+                    if (venue != null && venue.getStatus() == 1) {
+                        venue.setVenueId(data.getKey());
+                        venueList.add(venue);
                     }
                 }
                 callback.onSuccess(venueList);
             }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                callback.onFailure(error.getMessage());
-            }
+            @Override public void onCancelled(@NonNull DatabaseError error) { callback.onFailure(error.getMessage()); }
         });
     }
 
     public void fetchPromotedFields(OnDataLoaded callback) {
-        // BƯỚC 1: Lấy danh sách ID các sân có ưu đãi (status = 1)
-        mDatabase.child("Promotions").addValueEventListener(new ValueEventListener() {
+        // Lấy Promotions trước
+        mDatabase.child("Promotions").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot promoSnapshot) {
-                Set<String> promotedVenueIds = new HashSet<>();
-                for (DataSnapshot promoData : promoSnapshot.getChildren()) {
-                    Integer status = promoData.child("status").getValue(Integer.class);
-                    String venueId = promoData.child("venue_id").getValue(String.class);
-                    if (status != null && status == 1 && venueId != null) {
-                        promotedVenueIds.add(venueId);
+                Set<String> promotedIds = new HashSet<>();
+                for (DataSnapshot promo : promoSnapshot.getChildren()) {
+                    Object statusObj = promo.child("status").getValue();
+                    String vId = promo.child("venue_id").getValue(String.class);
+                    if (vId != null && statusObj != null) {
+                        long status = statusObj instanceof Long ? (Long) statusObj : Long.parseLong(statusObj.toString());
+                        if (status == 1) promotedIds.add(vId);
                     }
                 }
 
-                // BƯỚC 2: Lấy thông tin chi tiết các sân đó
+                // Sau đó lấy chi tiết Venues
                 mDatabase.child("Venues").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot venueSnapshot) {
-                        List<Venue> promotedVenues = new ArrayList<>();
-                        for (DataSnapshot venueData : venueSnapshot.getChildren()) {
-                            if (promotedVenueIds.contains(venueData.getKey())) {
-                                Venue venue = venueData.getValue(Venue.class);
-                                if (venue != null && venue.getStatus() == 1) {
-                                    venue.setVenueId(venueData.getKey());
-                                    promotedVenues.add(venue);
+                        List<Venue> list = new ArrayList<>();
+                        for (DataSnapshot vData : venueSnapshot.getChildren()) {
+                            if (promotedIds.contains(vData.getKey())) {
+                                Venue v = vData.getValue(Venue.class);
+                                if (v != null && v.getStatus() == 1) {
+                                    v.setVenueId(vData.getKey());
+                                    list.add(v);
                                 }
                             }
                         }
-                        callback.onSuccess(promotedVenues);
+                        Log.d(TAG, "Ưu đãi: Tìm thấy " + list.size() + " sân.");
+                        callback.onSuccess(list);
                     }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        callback.onFailure(error.getMessage());
-                    }
+                    @Override public void onCancelled(@NonNull DatabaseError error) { callback.onFailure(error.getMessage()); }
                 });
             }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                callback.onFailure(error.getMessage());
-            }
+            @Override public void onCancelled(@NonNull DatabaseError error) { callback.onFailure(error.getMessage()); }
         });
     }
 }
