@@ -23,7 +23,12 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import huce.fit.myapplication.objects.Venue;
 import huce.fit.myapplication.viewmodel.LoginViewModel;
+import huce.fit.myapplication.viewmodel.PaymentViewModel;
 
 public class LoginActivity extends AppCompatActivity {
     private Button btnLogin, btnGoogleLogin;
@@ -31,6 +36,7 @@ public class LoginActivity extends AppCompatActivity {
     private EditText edEmail, edPassword;
     private GoogleSignInClient mGoogleSignInClient;
     private LoginViewModel loginViewModel;
+    private PaymentViewModel paymentViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,20 +60,40 @@ public class LoginActivity extends AppCompatActivity {
 
     private void setupViewModel() {
         loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
+        paymentViewModel = new ViewModelProvider(this).get(PaymentViewModel.class);
 
-        // Lắng nghe kết quả đăng nhập thành công
         loginViewModel.getLoginSuccess().observe(this, userState -> {
             if (userState != null) {
-                saveToPrefsAndGoMain(userState.uid, userState.name, userState.email, userState.role);
+                handlePostLogin(userState.uid, userState.name, userState.email, userState.role);
             }
         });
 
-        // Lắng nghe lỗi đăng nhập
         loginViewModel.getLoginError().observe(this, errorMsg -> {
             if (errorMsg != null) {
                 Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    private void handlePostLogin(String uid, String name, String email, int role) {
+        // Kiểm tra xem có đơn hàng chờ không
+        if (getIntent().getBooleanExtra("pending_booking", false)) {
+            Venue venue = (Venue) getIntent().getSerializableExtra("selected_venue");
+            String date = getIntent().getStringExtra("selected_date");
+            ArrayList<String> slots = getIntent().getStringArrayListExtra("selected_slots");
+            HashMap services = (HashMap) getIntent().getSerializableExtra("selected_services");
+            long total = getIntent().getLongExtra("total_price", 0);
+            String cName = getIntent().getStringExtra("customer_name");
+            String cPhone = getIntent().getStringExtra("customer_phone");
+            String cNote = getIntent().getStringExtra("customer_note");
+
+            // Lưu vào Firebase với trạng thái "Chưa thanh toán" (status 2)
+            paymentViewModel.saveBookings(uid, venue, date, slots, services, total, null, cName, cPhone, cNote);
+            
+            Toast.makeText(this, "Đã lưu đơn hàng vào lịch sử. Vui lòng thanh toán để hoàn tất.", Toast.LENGTH_LONG).show();
+        }
+
+        saveToPrefsAndGoMain(uid, name, email, role);
     }
 
     private void setupGoogleSignIn() {
@@ -119,7 +145,6 @@ public class LoginActivity extends AppCompatActivity {
                         }
                     } catch (ApiException e) {
                         Log.e("GOOGLE_AUTH", "Lỗi: " + e.getStatusCode());
-                        Toast.makeText(this, "Google Sign-In thất bại", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -135,7 +160,6 @@ public class LoginActivity extends AppCompatActivity {
                 .putBoolean("isLoggedIn", true)
                 .apply();
 
-        Toast.makeText(this, "Chào mừng " + name, Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);

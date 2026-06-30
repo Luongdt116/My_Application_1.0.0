@@ -19,7 +19,7 @@ import huce.fit.myapplication.objects.Booking;
 public class HistoryViewModel extends ViewModel {
     private final MutableLiveData<List<Booking>> mBookingList = new MutableLiveData<>();
     private final MutableLiveData<Boolean> mIsLoading = new MutableLiveData<>();
-    private final MutableLiveData<String> mCancelStatus = new MutableLiveData<>();
+    private final MutableLiveData<String> mStatusMessage = new MutableLiveData<>();
     
     private final DatabaseReference mDatabase;
     private final String dbUrl = "https://app-moblie-131d8-default-rtdb.firebaseio.com/";
@@ -30,7 +30,7 @@ public class HistoryViewModel extends ViewModel {
 
     public LiveData<List<Booking>> getBookingList() { return mBookingList; }
     public LiveData<Boolean> getIsLoading() { return mIsLoading; }
-    public LiveData<String> getCancelStatus() { return mCancelStatus; }
+    public LiveData<String> getStatusMessage() { return mStatusMessage; }
 
     public void fetchBookingHistory(String userId) {
         if (userId == null || userId.isEmpty()) return;
@@ -62,10 +62,17 @@ public class HistoryViewModel extends ViewModel {
                 });
     }
 
+    public void deleteBooking(String bookingId) {
+        if (bookingId == null) return;
+        mDatabase.child("Bookings").child(bookingId).removeValue()
+                .addOnSuccessListener(aVoid -> mStatusMessage.setValue("Đã xóa đơn hàng"))
+                .addOnFailureListener(e -> mStatusMessage.setValue("Lỗi khi xóa: " + e.getMessage()));
+    }
+
     public void cancelBooking(String bookingId) {
         if (bookingId == null) return;
         mDatabase.child("Bookings").child(bookingId).child("status").setValue(0)
-                .addOnSuccessListener(aVoid -> mCancelStatus.setValue("Hủy lịch thành công"))
-                .addOnFailureListener(e -> mCancelStatus.setValue("Lỗi khi hủy lịch: " + e.getMessage()));
+                .addOnSuccessListener(aVoid -> mStatusMessage.setValue("Hủy lịch thành công"))
+                .addOnFailureListener(e -> mStatusMessage.setValue("Lỗi khi hủy lịch: " + e.getMessage()));
     }
 }

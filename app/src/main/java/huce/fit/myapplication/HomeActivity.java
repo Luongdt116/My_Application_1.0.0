@@ -47,7 +47,6 @@ public class HomeActivity extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Đảm bảo R.layout.home tồn tại và đúng ID
         View view = inflater.inflate(R.layout.home, container, false);
 
         initViews(view);
@@ -55,7 +54,6 @@ public class HomeActivity extends Fragment {
         setupViewModel();
         setupListeners(view);
 
-        // Khởi động các tác vụ tải dữ liệu
         if (homeViewModel != null) {
             homeViewModel.checkLoginStatus(requireContext());
             homeViewModel.fetchFieldsFromFirebase();
@@ -81,7 +79,6 @@ public class HomeActivity extends Fragment {
     private void setupRecyclerView() {
         if (rvFields == null) return;
         fieldAdapter = new FieldAdapter();
-        // RESPONSIVE: Khi xoay ngang chia 2 cột, xoay dọc 1 cột
         int spanCount = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 2 : 1;
         rvFields.setLayoutManager(new GridLayoutManager(getActivity(), spanCount));
         rvFields.setAdapter(fieldAdapter);
@@ -120,7 +117,9 @@ public class HomeActivity extends Fragment {
         });
 
         homeViewModel.getWelcomeMessage().observe(getViewLifecycleOwner(), message -> {
-            if (tvFullName != null && message != null) tvFullName.setText(message);
+            if (tvFullName != null) {
+                tvFullName.setText(message != null ? message : "");
+            }
         });
     }
 
@@ -165,7 +164,6 @@ public class HomeActivity extends Fragment {
     }
 
     private void setupSportIcons(View view) {
-        // Chỉ thêm listener cho những ID tồn tại trong XML
         int[] ids = {R.id.btnFilterPickleball, R.id.btnFilterBadminton, R.id.btnFilterFootball, R.id.btnFilterTennis};
         String[] sports = {"Pickleball", "Cầu lông", "Bóng đá", "Tennis"};
 
@@ -186,6 +184,15 @@ public class HomeActivity extends Fragment {
         Intent intent = new Intent(getActivity(), BookingActivity.class);
         intent.putExtra("selected_venue", venue);
         startActivity(intent);
+    }
+
+    // QUAN TRỌNG: Cập nhật trạng thái khi Tab được hiện lên (vì show/hide không kích hoạt onResume)
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (!hidden && homeViewModel != null) {
+            homeViewModel.checkLoginStatus(requireContext());
+        }
     }
 
     @Override

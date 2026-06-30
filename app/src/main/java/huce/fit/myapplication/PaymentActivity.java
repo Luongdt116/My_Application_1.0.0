@@ -46,6 +46,9 @@ public class PaymentActivity extends AppCompatActivity {
     private String currentUserId;
     private ProgressDialog progressDialog;
 
+    private boolean isRetryPayment = false;
+    private String pendingBookingId = "";
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,11 +56,10 @@ public class PaymentActivity extends AppCompatActivity {
 
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
-        // 1. Khởi tạo ZaloPay AppID 2554 (Sandbox)
         ZaloPaySDK.init(2554, Environment.SANDBOX);
 
-        getDataFromIntent();
-        initViews();
+        initViews(); // Khởi tạo View trước
+        getDataFromIntent(); // Sau đó mới lấy data điền vào view
         setupViewModel();
         setupListeners();
         displayBookingInfo();
@@ -65,18 +67,35 @@ public class PaymentActivity extends AppCompatActivity {
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Đang xử lý giao dịch...");
         progressDialog.setCancelable(false);
+
+        if (isRetryPayment) {
+            etName.setEnabled(false);
+            etPhone.setEnabled(false);
+            etNote.setEnabled(false);
+        }
     }
 
     private void getDataFromIntent() {
+        isRetryPayment = getIntent().getBooleanExtra("is_retry_payment", false);
+        pendingBookingId = getIntent().getStringExtra("booking_id");
+
         selectedVenue = (Venue) getIntent().getSerializableExtra("selected_venue");
         selectedDate = getIntent().getStringExtra("selected_date");
         selectedSlots = getIntent().getStringArrayListExtra("selected_slots");
+        
         Object servicesObj = getIntent().getSerializableExtra("selected_services");
         selectedServices = (servicesObj instanceof Map) ? (Map<String, Integer>) servicesObj : new HashMap<>();
+        
         totalPrice = getIntent().getLongExtra("total_price", 0);
 
         SharedPreferences pref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
         currentUserId = pref.getString("userId", "GUEST");
+
+        if (isRetryPayment) {
+            etName.setText(getIntent().getStringExtra("customer_name"));
+            etPhone.setText(getIntent().getStringExtra("customer_phone"));
+            etNote.setText(getIntent().getStringExtra("customer_note"));
+        }
     }
 
     private void initViews() {
@@ -119,7 +138,7 @@ public class PaymentActivity extends AppCompatActivity {
                 .setTitle("Thành công")
                 .setMessage("Đã thanh toán thành công! Lịch đặt sân của bạn đã được lưu lại.")
                 .setCancelable(false)
-                .setPositiveButton("Về trang chủ", (dialog, which) -> {
+                .setPositiveButton("Về trang chủ", (dialog, axis) -> {
                     Intent intent = new Intent(this, MainActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(intent);
@@ -133,7 +152,7 @@ public class PaymentActivity extends AppCompatActivity {
             tvVenueName.setText("Tên CLB: " + selectedVenue.getVenue_name());
             tvVenueAddress.setText("Địa chỉ: " + selectedVenue.getAddress_detail());
             tvDate.setText("Ngày: " + selectedDate);
-            tvTotalPrice.setText(String.format(Locale.getDefault(), "Tổng tiền: %,dđ", totalPrice));
+            tvTotalPrice.setText(String.format(Locale.getDefault(), "%,dđ", totalPrice));
             tvDetail.setText(viewModel.formatSummary(selectedSlots, selectedServices, selectedVenue));
         }
     }
@@ -142,6 +161,11 @@ public class PaymentActivity extends AppCompatActivity {
         if (btnBack != null) btnBack.setOnClickListener(v -> finish());
         if (btnConfirm != null) {
             btnConfirm.setOnClickListener(v -> {
+                if (currentUserId.equals("GUEST")) {
+                    showLoginRequiredDialog();
+                    return;
+                }
+
                 String name = etName.getText().toString().trim();
                 String phone = etPhone.getText().toString().trim();
                 if (name.isEmpty() || phone.isEmpty()) {
@@ -153,19 +177,43 @@ public class PaymentActivity extends AppCompatActivity {
         }
     }
 
+    private void showLoginRequiredDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Yêu cầu đăng nhập")
+                .setMessage("Bạn cần đăng nhập để thực hiện đặt sân. Sau khi đăng nhập, đơn hàng của bạn sẽ được lưu vào lịch sử để bạn có thể tiếp tục thanh toán.")
+                .setPositiveButton("Đăng nhập ngay", (dialog, which) -> {
+                    Intent intent = new Intent(this, LoginActivity.class);
+                    intent.putExtra("pending_booking", true);
+                    intent.putExtra("selected_venue", selectedVenue);
+                    intent.putExtra("selected_date", selectedDate);
+                    intent.putStringArrayListExtra("selected_slots", selectedSlots);
+                    intent.putExtra("selected_services", (HashMap)selectedServices);
+                    intent.putExtra("total_price", totalPrice);
+                    intent.putExtra("customer_name", etName.getText().toString());
+                    intent.putExtra("customer_phone", etPhone.getText().toString());
+                    intent.putExtra("customer_note", etNote.getText().toString());
+                    startActivity(intent);
+                })
+                .setNegativeButton("Để sau", null)
+                .show();
+    }
+
     private void openZaloPayApp(String token) {
         ZaloPaySDK.getInstance().payOrder(this, token, "demozpdk://app", new PayOrderListener() {
             @Override
             public void onPaymentSucceeded(String transactionId, String transToken, String appTransID) {
-                // Hiện loading khi đang lưu vào Firebase
                 progressDialog.show();
-                viewModel.saveBookings(
-                        currentUserId, selectedVenue, selectedDate, selectedSlots, 
-                        selectedServices, totalPrice, appTransID,
-                        etName.getText().toString().trim(),
-                        etPhone.getText().toString().trim(),
-                        etNote.getText().toString().trim()
-                );
+                if (isRetryPayment && !pendingBookingId.isEmpty()) {
+                    viewModel.updateBookingStatus(pendingBookingId, appTransID);
+                } else {
+                    viewModel.saveBookings(
+                            currentUserId, selectedVenue, selectedDate, selectedSlots, 
+                            selectedServices, totalPrice, appTransID,
+                            etName.getText().toString().trim(),
+                            etPhone.getText().toString().trim(),
+                            etNote.getText().toString().trim()
+                    );
+                }
             }
 
             @Override

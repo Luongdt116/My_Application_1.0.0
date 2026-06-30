@@ -25,7 +25,7 @@
                 android:scaleType="centerCrop"
                 tools:src="@drawable/badminton" />
 
-            <!-- Nhãn Ưu đãi -->
+            <!-- Nhãn Ưu đãi - Sử dụng bg_promo_badge để bo tròn đều 4 góc -->
             <TextView
                 android:id="@+id/tvPromoBadge"
                 android:layout_width="wrap_content"
@@ -33,8 +33,7 @@
                 android:layout_alignParentEnd="true"
                 android:layout_marginTop="12dp"
                 android:layout_marginEnd="12dp"
-                android:background="@drawable/bottom_sheet_background"
-                android:backgroundTint="#D32F2F"
+                android:background="@drawable/bg_promo_badge"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="4dp"
                 android:text="ƯU ĐÃI"
