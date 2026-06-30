@@ -92,5 +92,17 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancelBooking"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="8dp"
+            android:text="Hủy lịch"
+            android:textColor="#D32F2F"
+            android:visibility="gone"
+            app:rippleColor="#FFEBEE" />
+
     </LinearLayout>
 </androidx.cardview.widget.CardView>

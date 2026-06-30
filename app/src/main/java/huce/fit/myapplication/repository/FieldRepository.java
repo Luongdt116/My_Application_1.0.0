@@ -8,9 +8,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import huce.fit.myapplication.objects.Venue;
 
 public class FieldRepository {
@@ -32,53 +32,74 @@ public class FieldRepository {
     }
 
     public void fetchAllFields(OnDataLoaded callback) {
-        mDatabase.child("Venues").addListenerForSingleValueEvent(new ValueEventListener() {
+        // 1. Tải danh sách Promotions trước để biết sân nào đang có ưu đãi
+        mDatabase.child("Promotions").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                List<Venue> venueList = new ArrayList<>();
-                for (DataSnapshot data : snapshot.getChildren()) {
-                    Venue venue = data.getValue(Venue.class);
-                    if (venue != null && venue.getStatus() == 1) {
-                        venue.setVenueId(data.getKey());
-                        venueList.add(venue);
+            public void onDataChange(@NonNull DataSnapshot promoSnapshot) {
+                List<String> promotedIds = new ArrayList<>();
+                for (DataSnapshot promo : promoSnapshot.getChildren()) {
+                    Object statusObj = promo.child("status").getValue();
+                    String vId = promo.child("venue_id").getValue(String.class);
+                    if (vId != null && statusObj != null && String.valueOf(statusObj).equals("1")) {
+                        promotedIds.add(vId);
                     }
                 }
-                callback.onSuccess(venueList);
+
+                // 2. Tải danh sách Venues và LỌC BỎ các sân có ưu đãi
+                mDatabase.child("Venues").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        List<Venue> venueList = new ArrayList<>();
+                        for (DataSnapshot data : snapshot.getChildren()) {
+                            String vId = data.getKey();
+                            // Chỉ thêm vào "Tất cả" nếu sân KHÔNG nằm trong danh sách ưu đãi
+                            if (vId != null && !promotedIds.contains(vId)) {
+                                Venue venue = data.getValue(Venue.class);
+                                if (venue != null && venue.getStatus() == 1) {
+                                    venue.setVenueId(vId);
+                                    venueList.add(venue);
+                                }
+                            }
+                        }
+                        callback.onSuccess(venueList);
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError error) { callback.onFailure(error.getMessage()); }
+                });
             }
             @Override public void onCancelled(@NonNull DatabaseError error) { callback.onFailure(error.getMessage()); }
         });
     }
 
     public void fetchPromotedFields(OnDataLoaded callback) {
-        // Lấy Promotions trước
         mDatabase.child("Promotions").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot promoSnapshot) {
-                Set<String> promotedIds = new HashSet<>();
+                Map<String, String> promotedMap = new HashMap<>();
                 for (DataSnapshot promo : promoSnapshot.getChildren()) {
                     Object statusObj = promo.child("status").getValue();
                     String vId = promo.child("venue_id").getValue(String.class);
-                    if (vId != null && statusObj != null) {
-                        long status = statusObj instanceof Long ? (Long) statusObj : Long.parseLong(statusObj.toString());
-                        if (status == 1) promotedIds.add(vId);
+                    String title = promo.child("title").getValue(String.class);
+                    
+                    if (vId != null && statusObj != null && String.valueOf(statusObj).equals("1")) {
+                        promotedMap.put(vId, title);
                     }
                 }
 
-                // Sau đó lấy chi tiết Venues
                 mDatabase.child("Venues").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot venueSnapshot) {
                         List<Venue> list = new ArrayList<>();
                         for (DataSnapshot vData : venueSnapshot.getChildren()) {
-                            if (promotedIds.contains(vData.getKey())) {
+                            String venueId = vData.getKey();
+                            if (venueId != null && promotedMap.containsKey(venueId)) {
                                 Venue v = vData.getValue(Venue.class);
                                 if (v != null && v.getStatus() == 1) {
-                                    v.setVenueId(vData.getKey());
+                                    v.setVenueId(venueId);
+                                    v.setPromotionTitle(promotedMap.get(venueId));
                                     list.add(v);
                                 }
                             }
                         }
-                        Log.d(TAG, "Ưu đãi: Tìm thấy " + list.size() + " sân.");
                         callback.onSuccess(list);
                     }
                     @Override public void onCancelled(@NonNull DatabaseError error) { callback.onFailure(error.getMessage()); }

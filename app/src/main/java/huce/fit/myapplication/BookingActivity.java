@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
@@ -40,6 +41,7 @@ public class BookingActivity extends AppCompatActivity {
     private RecyclerView rvBookingCourts;
     private HorizontalScrollView hsvBookingTable;
     private SeekBar zoomSlider;
+    private SwipeRefreshLayout swipeRefreshLayout;
     
     private CourtBookingAdapter adapter;
     private Venue selectedVenue;
@@ -77,6 +79,7 @@ public class BookingActivity extends AppCompatActivity {
         rvBookingCourts = findViewById(R.id.rvBookingCourts);
         hsvBookingTable = findViewById(R.id.hsvBookingTable);
         zoomSlider = findViewById(R.id.zoomSlider);
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshBooking);
 
         tvVenueName.setText(selectedVenue.getVenue_name());
         if (selectedVenue.getVenue_prices() != null && !selectedVenue.getVenue_prices().isEmpty()) {
@@ -107,9 +110,25 @@ public class BookingActivity extends AppCompatActivity {
                 adapter.setData(bookingViewModel.getCourtList().getValue(), bookings);
             }
         });
+
+        // Lắng nghe trạng thái loading để ẩn vòng xoay refresh
+        bookingViewModel.getIsLoading().observe(this, isLoading -> {
+            if (swipeRefreshLayout != null) {
+                swipeRefreshLayout.setRefreshing(isLoading);
+            }
+        });
     }
 
     private void setupListeners() {
+        // Sự kiện Vuốt để làm mới
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setColorSchemeResources(R.color.primary_green);
+            swipeRefreshLayout.setOnRefreshListener(() -> {
+                bookingViewModel.loadCourts(selectedVenue.getVenueId());
+                refreshBookings();
+            });
+        }
+
         tvSelectedDate.setOnClickListener(v -> showDatePicker());
         btnBack.setOnClickListener(v -> finish());
         

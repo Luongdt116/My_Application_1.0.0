@@ -17,6 +17,7 @@ public class HomeViewModel extends ViewModel {
     private final MutableLiveData<List<Venue>> mDisplayList = new MutableLiveData<>();
     private final MutableLiveData<List<Venue>> mPromotedList = new MutableLiveData<>();
     private final MutableLiveData<Boolean> mShowLoadMore = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> mShowLoadMoreDiscovery = new MutableLiveData<>();
     private final MutableLiveData<Boolean> mShowClearFilter = new MutableLiveData<>();
     private final MutableLiveData<Boolean> mIsLoading = new MutableLiveData<>();
     private final MutableLiveData<String> mWelcomeMessage = new MutableLiveData<>();
@@ -24,10 +25,14 @@ public class HomeViewModel extends ViewModel {
     
     private final FieldRepository mFieldRepository;
     private List<Venue> mAllVenues = new ArrayList<>(); 
-    private List<Venue> mFilteredList = new ArrayList<>();
+    private List<Venue> mAllPromotedVenues = new ArrayList<>();
+    
+    private List<Venue> mCurrentFilteredList = new ArrayList<>();
+    private List<Venue> mCurrentPromotedFilteredList = new ArrayList<>();
     
     private final int PAGE_SIZE = 6;
     private int mDisplayedCount = 0;
+    private int mDisplayedPromotedCount = 0;
     private String mCurrentQuery = "";
 
     public HomeViewModel() {
@@ -37,6 +42,7 @@ public class HomeViewModel extends ViewModel {
     public LiveData<List<Venue>> getDisplayList() { return mDisplayList; }
     public LiveData<List<Venue>> getPromotedFields() { return mPromotedList; }
     public LiveData<Boolean> getShowLoadMore() { return mShowLoadMore; }
+    public LiveData<Boolean> getShowLoadMoreDiscovery() { return mShowLoadMoreDiscovery; }
     public LiveData<Boolean> getShowClearFilter() { return mShowClearFilter; }
     public LiveData<Boolean> getIsLoading() { return mIsLoading; }
     public LiveData<String> getWelcomeMessage() { return mWelcomeMessage; }
@@ -56,7 +62,6 @@ public class HomeViewModel extends ViewModel {
         refreshFields();
     }
 
-    // Ép buộc tải lại dữ liệu (Dùng cho Swipe Refresh)
     public void refreshFields() {
         mIsLoading.setValue(true);
         mFieldRepository.fetchAllFields(new FieldRepository.OnDataLoaded() {
@@ -71,16 +76,17 @@ public class HomeViewModel extends ViewModel {
     }
 
     public void fetchPromotedFieldsFromFirebase() {
+        if (!mAllPromotedVenues.isEmpty()) return;
         refreshPromotedFields();
     }
 
-    // Ép buộc tải lại khuyến mãi
     public void refreshPromotedFields() {
         mIsLoading.setValue(true);
         mFieldRepository.fetchPromotedFields(new FieldRepository.OnDataLoaded() {
             @Override
             public void onSuccess(List<Venue> venueList) {
-                mPromotedList.setValue(venueList);
+                mAllPromotedVenues = venueList;
+                applyDiscoveryFilterAndReset();
                 mIsLoading.setValue(false);
             }
             @Override public void onFailure(String error) { mIsLoading.setValue(false); }
@@ -93,40 +99,60 @@ public class HomeViewModel extends ViewModel {
         applyFilterAndResetPagination();
     }
 
+    public void searchDiscovery(String query) {
+        mCurrentQuery = query.toLowerCase().trim();
+        applyDiscoveryFilterAndReset();
+    }
+
     private void applyFilterAndResetPagination() {
-        List<Venue> filtered = new ArrayList<>();
-        if (mCurrentQuery.isEmpty()) {
-            filtered = new ArrayList<>(mAllVenues);
-        } else {
-            for (Venue venue : mAllVenues) {
-                String name = venue.getVenue_name().toLowerCase();
-                String sport = (venue.getSport_name() != null) ? venue.getSport_name().toLowerCase() : "";
-                if (name.contains(mCurrentQuery) || sport.contains(mCurrentQuery)) {
-                    filtered.add(venue);
-                }
-            }
-        }
-        mFilteredList = filtered;
+        mCurrentFilteredList = filterList(mAllVenues);
         mDisplayedCount = 0;
         mDisplayList.setValue(new ArrayList<>()); 
         loadNextPage();
     }
 
+    private void applyDiscoveryFilterAndReset() {
+        mCurrentPromotedFilteredList = filterList(mAllPromotedVenues);
+        mDisplayedPromotedCount = 0;
+        mPromotedList.setValue(new ArrayList<>());
+        loadNextPageDiscovery();
+    }
+
+    private List<Venue> filterList(List<Venue> source) {
+        if (mCurrentQuery.isEmpty()) return new ArrayList<>(source);
+        List<Venue> filtered = new ArrayList<>();
+        for (Venue venue : source) {
+            String name = venue.getVenue_name() != null ? venue.getVenue_name().toLowerCase() : "";
+            String sport = venue.getSport_name() != null ? venue.getSport_name().toLowerCase() : "";
+            if (name.contains(mCurrentQuery) || sport.contains(mCurrentQuery)) {
+                filtered.add(venue);
+            }
+        }
+        return filtered;
+    }
+
     public void loadNextPage() {
-        int start = mDisplayedCount;
-        int end = Math.min(start + PAGE_SIZE, mFilteredList.size());
-        List<Venue> currentDisplay = mDisplayList.getValue();
+        mDisplayedCount = paginate(mCurrentFilteredList, mDisplayList, mDisplayedCount, mShowLoadMore);
+    }
+
+    public void loadNextPageDiscovery() {
+        mDisplayedPromotedCount = paginate(mCurrentPromotedFilteredList, mPromotedList, mDisplayedPromotedCount, mShowLoadMoreDiscovery);
+    }
+
+    private int paginate(List<Venue> source, MutableLiveData<List<Venue>> target, int currentCount, MutableLiveData<Boolean> loadMoreFlag) {
+        int start = currentCount;
+        int end = Math.min(start + PAGE_SIZE, source.size());
+        List<Venue> currentDisplay = target.getValue();
         if (currentDisplay == null) currentDisplay = new ArrayList<>();
         
         if (start < end) {
-            List<Venue> newList = new ArrayList<>(currentDisplay);
             for (int i = start; i < end; i++) {
-                newList.add(mFilteredList.get(i));
+                currentDisplay.add(source.get(i));
             }
-            mDisplayedCount = end;
-            mDisplayList.setValue(newList);
+            target.setValue(new ArrayList<>(currentDisplay));
         }
-        mShowLoadMore.setValue(mDisplayedCount < mFilteredList.size());
+        loadMoreFlag.setValue(end < source.size());
+        return end;
     }
 
     public void clearFilter() { search(""); }

@@ -21,6 +21,7 @@ public class BookingViewModel extends ViewModel {
     private final MutableLiveData<List<Court>> mCourtList = new MutableLiveData<>();
     private final MutableLiveData<List<Booking>> mDayBookings = new MutableLiveData<>();
     private final MutableLiveData<String> mErrorMessage = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> mIsLoading = new MutableLiveData<>(false);
     
     private final DatabaseReference mDatabase;
     private final String dbUrl = "https://app-moblie-131d8-default-rtdb.firebaseio.com/";
@@ -32,11 +33,13 @@ public class BookingViewModel extends ViewModel {
     public LiveData<List<Court>> getCourtList() { return mCourtList; }
     public LiveData<List<Booking>> getDayBookings() { return mDayBookings; }
     public LiveData<String> getErrorMessage() { return mErrorMessage; }
+    public LiveData<Boolean> getIsLoading() { return mIsLoading; }
 
-    // Tải danh sách sân (courts) theo cấu trúc: Venues/{venueId}/courts
+    // Tải danh sách sân con của Venue
     public void loadCourts(String venueId) {
         if (venueId == null) return;
         
+        mIsLoading.setValue(true);
         mDatabase.child("Venues").child(venueId).child("courts")
                 .addValueEventListener(new ValueEventListener() {
                     @Override
@@ -51,11 +54,13 @@ public class BookingViewModel extends ViewModel {
                         } else {
                             mErrorMessage.setValue("Không tìm thấy danh sách sân con!");
                         }
+                        mIsLoading.setValue(false);
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         mErrorMessage.setValue("Lỗi Firebase: " + error.getMessage());
+                        mIsLoading.setValue(false);
                     }
                 });
     }
@@ -64,6 +69,7 @@ public class BookingViewModel extends ViewModel {
     public void loadBookings(String venueId, String date) {
         if (venueId == null || date == null) return;
         
+        mIsLoading.setValue(true);
         // Chuyển định dạng ngày từ dd/MM/yyyy sang yyyy-MM-dd để khớp JSON
         String[] parts = date.split("/");
         String queryDate = parts[2] + "-" + parts[1] + "-" + parts[0];
@@ -81,8 +87,11 @@ public class BookingViewModel extends ViewModel {
                             }
                         }
                         mDayBookings.setValue(list);
+                        mIsLoading.setValue(false);
                     }
-                    @Override public void onCancelled(@NonNull DatabaseError error) { }
+                    @Override public void onCancelled(@NonNull DatabaseError error) {
+                        mIsLoading.setValue(false);
+                    }
                 });
     }
 }

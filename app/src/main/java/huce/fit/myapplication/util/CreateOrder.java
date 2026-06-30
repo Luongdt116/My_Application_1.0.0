@@ -9,30 +9,28 @@ import okhttp3.RequestBody;
 import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 public class CreateOrder {
     public JSONObject createOrder(String amount) throws Exception {
         String appId = ZaloPayConstant.APP_ID;
         String appUser = "huce_user";
         
-        // Quan trọng: Phải dùng chung 1 giá trị thời gian cho cả app_time và app_trans_id
+        // Loại bỏ mọi ký tự không phải số nếu có
+        String cleanAmount = amount.replaceAll("[^0-9]", "");
+        
         long timestamp = new Date().getTime();
         String appTime = String.valueOf(timestamp);
-        
-        // Tạo app_trans_id theo chuẩn: yyMMdd_timestamp
-        String appTransId = new SimpleDateFormat("yyMMdd").format(new Date()) + "_" + timestamp;
+        String appTransId = new SimpleDateFormat("yyMMdd", Locale.getDefault()).format(new Date()) + "_" + timestamp;
         
         String embedData = "{}";
         String item = "[]";
         String description = "Thanh toan don hang #" + appTransId;
         String bankCode = ""; 
 
-        // CHUỖI TẠO MAC V2 BẮT BUỘC: app_id|app_trans_id|app_user|amount|app_time|embed_data|item
-        String dataToHash = appId + "|" + appTransId + "|" + appUser + "|" + amount + "|" + appTime + "|" + embedData + "|" + item;
+        // MAC Input: app_id|app_trans_id|app_user|amount|app_time|embed_data|item
+        String dataToHash = appId + "|" + appTransId + "|" + appUser + "|" + cleanAmount + "|" + appTime + "|" + embedData + "|" + item;
         
-        Log.d("ZaloPay_Debug", "MAC Input String: " + dataToHash);
-        
-        // Dùng KEY1 của AppID 2554 để băm
         String mac = Helpers.getMac(ZaloPayConstant.KEY1, dataToHash);
 
         RequestBody formBody = new FormBody.Builder()
@@ -40,7 +38,7 @@ public class CreateOrder {
                 .add("app_user", appUser)
                 .add("app_trans_id", appTransId)
                 .add("app_time", appTime)
-                .add("amount", amount)
+                .add("amount", cleanAmount)
                 .add("item", item)
                 .add("embed_data", embedData)
                 .add("description", description)
@@ -48,6 +46,10 @@ public class CreateOrder {
                 .add("mac", mac)
                 .build();
 
-        return HttpProvider.sendPost("https://sb-openapi.zalopay.vn/v2/create", formBody);
+        JSONObject result = HttpProvider.sendPost("https://sb-openapi.zalopay.vn/v2/create", formBody);
+        if (result != null) {
+            Log.d("ZaloPay_Result", result.toString());
+        }
+        return result;
     }
 }

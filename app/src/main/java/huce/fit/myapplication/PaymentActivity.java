@@ -1,5 +1,6 @@
 package huce.fit.myapplication;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,12 +11,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.button.MaterialButton;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
@@ -43,6 +44,7 @@ public class PaymentActivity extends AppCompatActivity {
     
     private PaymentViewModel viewModel;
     private String currentUserId;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -51,29 +53,26 @@ public class PaymentActivity extends AppCompatActivity {
 
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
-        // 1. Khởi tạo ZaloPay
+        // 1. Khởi tạo ZaloPay AppID 2554 (Sandbox)
         ZaloPaySDK.init(2554, Environment.SANDBOX);
 
-        // 2. Nhận dữ liệu từ Intent
         getDataFromIntent();
-
-        // 3. Ánh xạ và thiết lập giao diện
         initViews();
         setupViewModel();
         setupListeners();
-
-        // Hiển thị thông tin tóm tắt ban đầu
         displayBookingInfo();
+        
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Đang xử lý giao dịch...");
+        progressDialog.setCancelable(false);
     }
 
     private void getDataFromIntent() {
         selectedVenue = (Venue) getIntent().getSerializableExtra("selected_venue");
         selectedDate = getIntent().getStringExtra("selected_date");
         selectedSlots = getIntent().getStringArrayListExtra("selected_slots");
-        
         Object servicesObj = getIntent().getSerializableExtra("selected_services");
         selectedServices = (servicesObj instanceof Map) ? (Map<String, Integer>) servicesObj : new HashMap<>();
-        
         totalPrice = getIntent().getLongExtra("total_price", 0);
 
         SharedPreferences pref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
@@ -96,30 +95,37 @@ public class PaymentActivity extends AppCompatActivity {
     private void setupViewModel() {
         viewModel = new ViewModelProvider(this).get(PaymentViewModel.class);
 
-        // Lắng nghe Token từ ZaloPay
         viewModel.getZaloToken().observe(this, token -> {
-            if (token != null) {
-                openZaloPayApp(token);
-            }
+            if (token != null) openZaloPayApp(token);
         });
 
-        // Lắng nghe trạng thái lưu Booking thành công
         viewModel.getPaymentSuccess().observe(this, success -> {
             if (success) {
-                Toast.makeText(this, "Đặt sân thành công!", Toast.LENGTH_LONG).show();
-                Intent intent = new Intent(this, MainActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(intent);
-                finish();
+                if (progressDialog.isShowing()) progressDialog.dismiss();
+                showSuccessDialog();
             }
         });
 
-        // Lắng nghe lỗi
         viewModel.getError().observe(this, error -> {
             if (error != null) {
-                Toast.makeText(this, "Lỗi: " + error, Toast.LENGTH_SHORT).show();
+                if (progressDialog.isShowing()) progressDialog.dismiss();
+                Toast.makeText(this, error, Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void showSuccessDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Thành công")
+                .setMessage("Đã thanh toán thành công! Lịch đặt sân của bạn đã được lưu lại.")
+                .setCancelable(false)
+                .setPositiveButton("Về trang chủ", (dialog, which) -> {
+                    Intent intent = new Intent(this, MainActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    finish();
+                })
+                .show();
     }
 
     private void displayBookingInfo() {
@@ -128,16 +134,12 @@ public class PaymentActivity extends AppCompatActivity {
             tvVenueAddress.setText("Địa chỉ: " + selectedVenue.getAddress_detail());
             tvDate.setText("Ngày: " + selectedDate);
             tvTotalPrice.setText(String.format(Locale.getDefault(), "Tổng tiền: %,dđ", totalPrice));
-            
-            // ViewModel lo việc format text tóm tắt
-            String summary = viewModel.formatSummary(selectedSlots, selectedServices, selectedVenue);
-            tvDetail.setText(summary);
+            tvDetail.setText(viewModel.formatSummary(selectedSlots, selectedServices, selectedVenue));
         }
     }
 
     private void setupListeners() {
         if (btnBack != null) btnBack.setOnClickListener(v -> finish());
-
         if (btnConfirm != null) {
             btnConfirm.setOnClickListener(v -> {
                 String name = etName.getText().toString().trim();
@@ -146,7 +148,6 @@ public class PaymentActivity extends AppCompatActivity {
                     Toast.makeText(this, "Vui lòng nhập tên và số điện thoại", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                // Bắt đầu quy trình thanh toán qua ViewModel
                 viewModel.createZaloPayOrder(totalPrice);
             });
         }
@@ -156,7 +157,8 @@ public class PaymentActivity extends AppCompatActivity {
         ZaloPaySDK.getInstance().payOrder(this, token, "demozpdk://app", new PayOrderListener() {
             @Override
             public void onPaymentSucceeded(String transactionId, String transToken, String appTransID) {
-                // Thanh toán app thành công -> Bảo ViewModel lưu vào Firebase
+                // Hiện loading khi đang lưu vào Firebase
+                progressDialog.show();
                 viewModel.saveBookings(
                         currentUserId, selectedVenue, selectedDate, selectedSlots, 
                         selectedServices, totalPrice, appTransID,

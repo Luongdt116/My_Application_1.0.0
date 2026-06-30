@@ -1,9 +1,13 @@
 package huce.fit.myapplication.objects;
 
+import com.google.firebase.database.Exclude;
 import java.io.Serializable;
 import java.util.Map;
 
 public class Booking implements Serializable {
+    @Exclude
+    private String bookingId; // Firebase key
+    
     private String account_id;
     private String venue_id;
     private String venue_name;
@@ -22,6 +26,11 @@ public class Booking implements Serializable {
     private Map<String, Object> payment_info;
 
     public Booking() {}
+
+    @Exclude
+    public String getBookingId() { return bookingId; }
+    @Exclude
+    public void setBookingId(String bookingId) { this.bookingId = bookingId; }
 
     public String getAccount_id() { return account_id; }
     public void setAccount_id(String account_id) { this.account_id = account_id; }

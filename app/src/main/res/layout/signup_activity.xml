@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:paddingTop="48dp"
     android:background="@color/background_brown"
     android:fillViewport="true">
 
@@ -15,8 +16,7 @@
             android:id="@+id/btnBack"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:layout_marginTop="16dp"
-            android:src="@android:drawable/ic_menu_revert"
+            android:src="@drawable/back_custom"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:tint="@color/white" />
@@ -96,7 +96,6 @@
                     android:textColor="@color/primary_green"
                     android:textStyle="bold" />
 
-                <!-- ĐÃ SỬA: Thêm id edEmail vào đây -->
                 <EditText
                     android:id="@+id/edEmail"
                     android:layout_width="match_parent"

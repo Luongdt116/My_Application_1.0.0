@@ -7,8 +7,12 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.button.MaterialButton;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import huce.fit.myapplication.R;
 import huce.fit.myapplication.objects.Booking;
@@ -32,31 +36,46 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
     public void onBindViewHolder(@NonNull HistoryViewHolder holder, int position) {
         Booking booking = bookingList.get(position);
 
-        // Hiển thị tạm ID sân hoặc Tên sân nếu bạn đã lưu trong Booking
-        holder.tvVenueName.setText(booking.getCourt_name()); 
+        // 1. Tên CLB và Sân
+        holder.tvVenueName.setText(booking.getVenue_name() + " - " + booking.getCourt_name()); 
         holder.tvCourtDetail.setText("Ca: " + booking.getStart_time() + " - " + booking.getEnd_time());
         holder.tvDate.setText("Ngày: " + booking.getBooking_date());
-        holder.tvTotalPrice.setText(String.format("%,dđ", booking.getTotal_price_snapshot()));
-
-        // Trạng thái
-        if (booking.getStatus() == 1) {
-            holder.tvStatus.setText("Thành công");
-            holder.tvStatus.setTextColor(Color.parseColor("#2E7D32"));
-        } else {
-            holder.tvStatus.setText("Đã hủy");
-            holder.tvStatus.setTextColor(Color.RED);
+        
+        // 2. Tổng tiền
+        long price = booking.getTotal_price_snapshot();
+        if (price <= 0 && booking.getPayment_info() != null) {
+            Object amt = booking.getPayment_info().get("amount");
+            if (amt instanceof Number) price = ((Number) amt).longValue();
         }
 
-        // Dịch vụ đi kèm
+        if (price > 0) {
+            holder.tvTotalPrice.setText(String.format(Locale.getDefault(), "%,dđ", price));
+        } else {
+            holder.tvTotalPrice.setText("Đã thanh toán");
+        }
+
+        // 3. Trạng thái (Bỏ qua nút hủy theo yêu cầu demo)
+        if (booking.getStatus() == 0) {
+            holder.tvStatus.setText("Đã hủy");
+            holder.tvStatus.setTextColor(Color.RED);
+        } else {
+            holder.tvStatus.setText("Thành công");
+            holder.tvStatus.setTextColor(Color.parseColor("#2E7D32"));
+        }
+        holder.btnCancel.setVisibility(View.GONE); // Ẩn nút hủy vì bỏ qua logic hoàn tiền
+
+        // 4. Hiển thị CHI TIẾT DỊCH VỤ (Tên dịch vụ thay vì mã ID)
         if (booking.getSelected_services() != null && !booking.getSelected_services().isEmpty()) {
-            StringBuilder services = new StringBuilder("Dịch vụ: ");
+            StringBuilder servicesStr = new StringBuilder("Dịch vụ: ");
             int count = 0;
             for (Map.Entry<String, Integer> entry : booking.getSelected_services().entrySet()) {
-                services.append(entry.getKey()).append(" (x").append(entry.getValue()).append(")");
-                if (count < booking.getSelected_services().size() - 1) services.append(", ");
+                servicesStr.append(entry.getKey()).append(" (x").append(entry.getValue()).append(")");
+                if (count < booking.getSelected_services().size() - 1) {
+                    servicesStr.append(", ");
+                }
                 count++;
             }
-            holder.tvServices.setText(services.toString());
+            holder.tvServices.setText(servicesStr.toString());
             holder.tvServices.setVisibility(View.VISIBLE);
         } else {
             holder.tvServices.setVisibility(View.GONE);
@@ -70,6 +89,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
 
     static class HistoryViewHolder extends RecyclerView.ViewHolder {
         TextView tvVenueName, tvStatus, tvCourtDetail, tvDate, tvServices, tvTotalPrice;
+        MaterialButton btnCancel;
 
         public HistoryViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -79,6 +99,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
             tvDate = itemView.findViewById(R.id.tvHistoryDate);
             tvServices = itemView.findViewById(R.id.tvHistoryServices);
             tvTotalPrice = itemView.findViewById(R.id.tvHistoryTotalPrice);
+            btnCancel = itemView.findViewById(R.id.btnCancelBooking);
         }
     }
 }

@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import huce.fit.myapplication.adapter.HistoryAdapter;
 import huce.fit.myapplication.viewmodel.HistoryViewModel;
@@ -25,6 +26,8 @@ public class HistoryActivity extends AppCompatActivity {
     private HistoryViewModel viewModel;
     private ProgressBar progressBar;
     private TextView tvEmpty;
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private String userId;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -39,9 +42,9 @@ public class HistoryActivity extends AppCompatActivity {
         setupViewModel();
         setupListeners();
 
-        // Lấy userId để tải lịch sử
         SharedPreferences pref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
-        String userId = pref.getString("userId", "");
+        userId = pref.getString("userId", "");
+        
         if (!userId.isEmpty()) {
             viewModel.fetchBookingHistory(userId);
         } else {
@@ -54,6 +57,7 @@ public class HistoryActivity extends AppCompatActivity {
         rvHistory = findViewById(R.id.rvHistory);
         progressBar = findViewById(R.id.pbHistory);
         tvEmpty = findViewById(R.id.tvEmptyHistory);
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshHistory);
 
         adapter = new HistoryAdapter();
         rvHistory.setLayoutManager(new LinearLayoutManager(this));
@@ -63,20 +67,20 @@ public class HistoryActivity extends AppCompatActivity {
     private void setupViewModel() {
         viewModel = new ViewModelProvider(this).get(HistoryViewModel.class);
 
-        // Quan sát danh sách lịch sử
         viewModel.getBookingList().observe(this, bookings -> {
             if (bookings != null && !bookings.isEmpty()) {
                 adapter.setBookings(bookings);
                 tvEmpty.setVisibility(View.GONE);
             } else {
+                adapter.setBookings(bookings); 
                 tvEmpty.setVisibility(View.VISIBLE);
             }
         });
 
-        // Quan sát trạng thái tải dữ liệu
         viewModel.getIsLoading().observe(this, isLoading -> {
             if (isLoading != null) {
                 progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+                swipeRefreshLayout.setRefreshing(isLoading);
             }
         });
     }
@@ -85,6 +89,15 @@ public class HistoryActivity extends AppCompatActivity {
         ImageView btnBack = findViewById(R.id.btnBackHistory);
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> finish());
+        }
+
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setColorSchemeResources(R.color.primary_green);
+            swipeRefreshLayout.setOnRefreshListener(() -> {
+                if (!userId.isEmpty()) {
+                    viewModel.fetchBookingHistory(userId);
+                }
+            });
         }
     }
 }

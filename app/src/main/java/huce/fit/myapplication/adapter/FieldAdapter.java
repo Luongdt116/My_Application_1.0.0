@@ -46,8 +46,19 @@ public class FieldAdapter extends RecyclerView.Adapter<FieldAdapter.FieldViewHol
         Venue venue = venueList.get(position);
         
         holder.tvFieldName.setText(venue.getVenue_name());
+        holder.tvFieldDescription.setText(venue.getDescription());
         holder.tvFieldLocation.setText(venue.getAddress_detail());
         holder.tvFieldPrice.setText("Giá từ: " + venue.getDisplayPrice());
+
+        // HIỂN THỊ ƯU ĐÃI
+        if (venue.getPromotionTitle() != null && !venue.getPromotionTitle().isEmpty()) {
+            holder.tvPromoBadge.setVisibility(View.VISIBLE);
+            holder.tvPromoTitle.setVisibility(View.VISIBLE);
+            holder.tvPromoTitle.setText(venue.getPromotionTitle());
+        } else {
+            holder.tvPromoBadge.setVisibility(View.GONE);
+            holder.tvPromoTitle.setVisibility(View.GONE);
+        }
 
         // Xử lý ảnh
         Context context = holder.itemView.getContext();
@@ -73,15 +84,18 @@ public class FieldAdapter extends RecyclerView.Adapter<FieldAdapter.FieldViewHol
 
     class FieldViewHolder extends RecyclerView.ViewHolder {
         ImageView imgField;
-        TextView tvFieldName, tvFieldLocation, tvFieldPrice;
+        TextView tvFieldName, tvFieldDescription, tvFieldLocation, tvFieldPrice, tvPromoBadge, tvPromoTitle;
         MaterialButton btnBook;
 
         public FieldViewHolder(@NonNull View itemView) {
             super(itemView);
             imgField = itemView.findViewById(R.id.imgField);
             tvFieldName = itemView.findViewById(R.id.tvFieldName);
+            tvFieldDescription = itemView.findViewById(R.id.tvFieldDescription);
             tvFieldLocation = itemView.findViewById(R.id.tvFieldLocation);
             tvFieldPrice = itemView.findViewById(R.id.tvFieldPrice);
+            tvPromoBadge = itemView.findViewById(R.id.tvPromoBadge);
+            tvPromoTitle = itemView.findViewById(R.id.tvPromoTitle);
             btnBook = itemView.findViewById(R.id.btnBook);
 
             itemView.setOnClickListener(v -> {

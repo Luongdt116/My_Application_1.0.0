@@ -19,6 +19,8 @@ import huce.fit.myapplication.objects.Booking;
 public class HistoryViewModel extends ViewModel {
     private final MutableLiveData<List<Booking>> mBookingList = new MutableLiveData<>();
     private final MutableLiveData<Boolean> mIsLoading = new MutableLiveData<>();
+    private final MutableLiveData<String> mCancelStatus = new MutableLiveData<>();
+    
     private final DatabaseReference mDatabase;
     private final String dbUrl = "https://app-moblie-131d8-default-rtdb.firebaseio.com/";
 
@@ -28,6 +30,7 @@ public class HistoryViewModel extends ViewModel {
 
     public LiveData<List<Booking>> getBookingList() { return mBookingList; }
     public LiveData<Boolean> getIsLoading() { return mIsLoading; }
+    public LiveData<String> getCancelStatus() { return mCancelStatus; }
 
     public void fetchBookingHistory(String userId) {
         if (userId == null || userId.isEmpty()) return;
@@ -41,8 +44,13 @@ public class HistoryViewModel extends ViewModel {
                         List<Booking> list = new ArrayList<>();
                         for (DataSnapshot data : snapshot.getChildren()) {
                             Booking b = data.getValue(Booking.class);
-                            if (b != null) list.add(b);
+                            if (b != null) {
+                                b.setBookingId(data.getKey());
+                                list.add(b);
+                            }
                         }
+                        // Sắp xếp mới nhất lên đầu
+                        list.sort((b1, b2) -> Long.compare(b2.getCreated_at(), b1.getCreated_at()));
                         mBookingList.setValue(list);
                         mIsLoading.setValue(false);
                     }
@@ -52,5 +60,12 @@ public class HistoryViewModel extends ViewModel {
                         mIsLoading.setValue(false);
                     }
                 });
+    }
+
+    public void cancelBooking(String bookingId) {
+        if (bookingId == null) return;
+        mDatabase.child("Bookings").child(bookingId).child("status").setValue(0)
+                .addOnSuccessListener(aVoid -> mCancelStatus.setValue("Hủy lịch thành công"))
+                .addOnFailureListener(e -> mCancelStatus.setValue("Lỗi khi hủy lịch: " + e.getMessage()));
     }
 }

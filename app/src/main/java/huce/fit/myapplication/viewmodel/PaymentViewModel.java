@@ -65,6 +65,20 @@ public class PaymentViewModel extends ViewModel {
         String[] dateParts = date.split("/");
         String firebaseDate = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0];
 
+        // Ánh xạ ID dịch vụ sang Tên dịch vụ để hiển thị lịch sử dễ dàng
+        Map<String, Integer> serviceNamesMap = new HashMap<>();
+        if (services != null && venue.getServices() != null) {
+            for (Map.Entry<String, Integer> entry : services.entrySet()) {
+                String srvId = entry.getKey();
+                if (venue.getServices().containsKey(srvId)) {
+                    String srvName = venue.getServices().get(srvId).getName();
+                    serviceNamesMap.put(srvName, entry.getValue());
+                } else {
+                    serviceNamesMap.put(srvId, entry.getValue());
+                }
+            }
+        }
+
         final int totalSlots = slots.size();
         final AtomicInteger savedCount = new AtomicInteger(0);
 
@@ -97,7 +111,8 @@ public class PaymentViewModel extends ViewModel {
             bookingData.put("customer_name", name);
             bookingData.put("customer_phone", phone);
             bookingData.put("note", note);
-            bookingData.put("selected_services", services);
+            bookingData.put("selected_services", serviceNamesMap); // Lưu Map với Key là Tên dịch vụ
+            bookingData.put("total_price_snapshot", total / totalSlots);
 
             Map<String, Object> paymentInfo = new HashMap<>();
             paymentInfo.put("method", "ZaloPay");
@@ -107,7 +122,6 @@ public class PaymentViewModel extends ViewModel {
             paymentInfo.put("paid_at", now);
             bookingData.put("payment_info", paymentInfo);
 
-            // Đảm bảo dữ liệu được lưu thành công mới báo về UI
             mDatabase.child("Bookings").push().setValue(bookingData)
                 .addOnCompleteListener(task -> {
                     if (savedCount.incrementAndGet() == totalSlots) {

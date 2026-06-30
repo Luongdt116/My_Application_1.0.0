@@ -42,7 +42,7 @@ dependencies {
     // Google Sign-In
     implementation(libs.play.services.auth)
     
-    // Swipe to Refresh
+    // Swipe to Refresh - Dùng trực tiếp string để tránh lỗi alias
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     
     // Retrofit & OkHttp
@@ -52,7 +52,7 @@ dependencies {
     
     implementation("androidx.recyclerview:recyclerview:1.4.0")
 
-    // ZaloPay SDK - Sử dụng file cục bộ trong thư mục libs
+    // ZaloPay SDK
     implementation(fileTree(mapOf(
         "dir" to "D:\\Download\\APPcode\\BTN_AppMobile",
         "include" to listOf("*.aar", "*.jar"),

@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:paddingTop="32dp"
     android:background="#F0F9F4">
 
     <!-- Header Toolbar -->
@@ -13,8 +14,22 @@
         android:background="#09A459"
         app:layout_constraintTop_toTopOf="parent">
         <RelativeLayout android:layout_width="match_parent" android:layout_height="match_parent">
-            <ImageView android:id="@+id/btnBackBooking" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true" android:src="@android:drawable/ic_menu_revert" app:tint="@color/white" />
-            <TextView android:id="@+id/tvVenueNameBooking" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerInParent="true" android:text="Đặt lịch" android:textColor="@color/white" android:textSize="18sp" android:textStyle="bold" />
+            <ImageView 
+                android:id="@+id/btnBackBooking" 
+                android:layout_width="32dp" 
+                android:layout_height="32dp" 
+                android:layout_centerVertical="true" 
+                android:src="@drawable/back_custom" 
+                app:tint="@color/white" />
+            <TextView 
+                android:id="@+id/tvVenueNameBooking" 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content" 
+                android:layout_centerInParent="true" 
+                android:text="Đặt lịch" 
+                android:textColor="@color/white" 
+                android:textSize="18sp" 
+                android:textStyle="bold" />
         </RelativeLayout>
     </androidx.appcompat.widget.Toolbar>
 
@@ -35,23 +50,30 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Bảng đặt sân cuộn ngang -->
-    <HorizontalScrollView
-        android:id="@+id/hsvBookingTable"
+    <!-- Swipe to Refresh -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshBooking"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:fillViewport="true"
         app:layout_constraintBottom_toTopOf="@id/zoomSlider"
         app:layout_constraintTop_toBottomOf="@id/layoutHeaderInfo">
-        <LinearLayout android:layout_width="wrap_content" android:layout_height="match_parent" android:orientation="vertical">
-            <androidx.recyclerview.widget.RecyclerView 
-                android:id="@+id/rvBookingCourts" 
-                android:layout_width="wrap_content" 
-                android:layout_height="match_parent" 
-                android:overScrollMode="never" />
-        </LinearLayout>
-    </HorizontalScrollView>
+
+        <HorizontalScrollView
+            android:id="@+id/hsvBookingTable"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true">
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="match_parent" android:orientation="vertical">
+                <androidx.recyclerview.widget.RecyclerView 
+                    android:id="@+id/rvBookingCourts" 
+                    android:layout_width="wrap_content" 
+                    android:layout_height="match_parent" 
+                    android:overScrollMode="never" />
+            </LinearLayout>
+        </HorizontalScrollView>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <SeekBar android:id="@+id/zoomSlider" android:layout_width="200dp" android:layout_height="wrap_content" android:layout_marginBottom="16dp" android:max="100" app:layout_constraintBottom_toTopOf="@id/btnNext" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" />
+    
     <com.google.android.material.button.MaterialButton android:id="@+id/btnNext" android:layout_width="match_parent" android:layout_height="55dp" android:layout_margin="16dp" android:backgroundTint="#FFB300" android:text="TIẾP THEO" android:textColor="@color/black" android:textStyle="bold" app:cornerRadius="8dp" app:layout_constraintBottom_toBottomOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
