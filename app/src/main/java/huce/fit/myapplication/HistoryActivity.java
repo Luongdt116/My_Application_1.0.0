@@ -1,6 +1,7 @@
 package huce.fit.myapplication;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
@@ -10,13 +11,19 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import huce.fit.myapplication.adapter.HistoryAdapter;
+import huce.fit.myapplication.objects.Booking;
+import huce.fit.myapplication.objects.Venue;
 import huce.fit.myapplication.viewmodel.HistoryViewModel;
 
 public class HistoryActivity extends AppCompatActivity {
@@ -72,7 +79,7 @@ public class HistoryActivity extends AppCompatActivity {
                 adapter.setBookings(bookings);
                 tvEmpty.setVisibility(View.GONE);
             } else {
-                adapter.setBookings(bookings); 
+                adapter.setBookings(new ArrayList<>());
                 tvEmpty.setVisibility(View.VISIBLE);
             }
         });
@@ -81,6 +88,13 @@ public class HistoryActivity extends AppCompatActivity {
             if (isLoading != null) {
                 progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
                 swipeRefreshLayout.setRefreshing(isLoading);
+            }
+        });
+
+        viewModel.getStatusMessage().observe(this, msg -> {
+            if (msg != null) {
+                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+                viewModel.fetchBookingHistory(userId);
             }
         });
     }
@@ -99,5 +113,58 @@ public class HistoryActivity extends AppCompatActivity {
                 }
             });
         }
+
+        adapter.setOnBookingActionListener(new HistoryAdapter.OnBookingActionListener() {
+            @Override
+            public void onPayNow(Booking booking) {
+                retryPayment(booking);
+            }
+
+            @Override
+            public void onDelete(Booking booking) {
+                showDeleteConfirmDialog(booking);
+            }
+        });
+    }
+
+    private void retryPayment(Booking booking) {
+        Intent intent = new Intent(this, PaymentActivity.class);
+        intent.putExtra("is_retry_payment", true);
+        intent.putExtra("booking_id", booking.getBookingId());
+        
+        Venue venue = new Venue();
+        venue.setVenueId(booking.getVenue_id());
+        venue.setVenue_name(booking.getVenue_name());
+        // Lưu ý: Địa chỉ thường không được lưu trực tiếp trong Booking cũ, 
+        // ta có thể hiển thị tạm hoặc truyền trống, PaymentActivity sẽ xử lý.
+        venue.setAddress_detail("Dữ liệu từ lịch sử"); 
+        
+        intent.putExtra("selected_venue", venue);
+        intent.putExtra("selected_date", booking.getBooking_date());
+        
+        // Reconstruct slots
+        ArrayList<String> slots = new ArrayList<>();
+        String hour = booking.getStart_time().split(":")[0];
+        slots.add(booking.getCourt_name() + "|" + hour);
+        intent.putStringArrayListExtra("selected_slots", slots);
+        
+        intent.putExtra("selected_services", (HashMap)booking.getSelected_services());
+        intent.putExtra("total_price", booking.getTotal_price_snapshot());
+        intent.putExtra("customer_name", booking.getCustomer_name());
+        intent.putExtra("customer_phone", booking.getCustomer_phone());
+        intent.putExtra("customer_note", booking.getNote());
+        
+        startActivity(intent);
+    }
+
+    private void showDeleteConfirmDialog(Booking booking) {
+        new AlertDialog.Builder(this)
+                .setTitle("Xác nhận xóa")
+                .setMessage("Bạn có chắc chắn muốn xóa đơn hàng này không?")
+                .setPositiveButton("Xóa", (dialog, which) -> {
+                    viewModel.deleteBooking(booking.getBookingId());
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
     }
 }

@@ -54,6 +54,9 @@ public class HomeViewModel extends ViewModel {
         mIsLoggedIn.setValue(loggedIn);
         if (loggedIn) {
             mWelcomeMessage.setValue("Chào, " + pref.getString("username", "Người dùng"));
+        } else {
+            // Đảm bảo xóa trắng thông tin khi đã đăng xuất
+            mWelcomeMessage.setValue("");
         }
     }
 

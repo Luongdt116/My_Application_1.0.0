@@ -57,24 +57,36 @@ public class PaymentViewModel extends ViewModel {
         });
     }
 
+    public void updateBookingStatus(String bookingId, String transId) {
+        long now = System.currentTimeMillis();
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("status", 1);
+        updates.put("payment_info/transaction_code", transId);
+        updates.put("payment_info/payment_status", 1);
+        updates.put("payment_info/paid_at", now);
+
+        mDatabase.child("Bookings").child(bookingId).updateChildren(updates)
+                .addOnSuccessListener(aVoid -> mPaymentSuccess.postValue(true))
+                .addOnFailureListener(e -> mError.postValue("Lỗi cập nhật: " + e.getMessage()));
+    }
+
     public void saveBookings(String userId, Venue venue, String date, ArrayList<String> slots, 
                              Map<String, Integer> services, long total, String transId, 
                              String name, String phone, String note) {
         
         long now = System.currentTimeMillis();
         String[] dateParts = date.split("/");
-        String firebaseDate = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0];
+        String firebaseDate = dateParts.length == 3 ? dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0] : date;
 
-        // Ánh xạ ID dịch vụ sang Tên dịch vụ để hiển thị lịch sử dễ dàng
         Map<String, Integer> serviceNamesMap = new HashMap<>();
-        if (services != null && venue.getServices() != null) {
+        if (services != null) {
             for (Map.Entry<String, Integer> entry : services.entrySet()) {
-                String srvId = entry.getKey();
-                if (venue.getServices().containsKey(srvId)) {
-                    String srvName = venue.getServices().get(srvId).getName();
-                    serviceNamesMap.put(srvName, entry.getValue());
+                String key = entry.getKey();
+                // Nếu key là ID thì đổi sang tên, nếu đã là tên thì giữ nguyên
+                if (venue.getServices() != null && venue.getServices().containsKey(key)) {
+                    serviceNamesMap.put(venue.getServices().get(key).getName(), entry.getValue());
                 } else {
-                    serviceNamesMap.put(srvId, entry.getValue());
+                    serviceNamesMap.put(key, entry.getValue());
                 }
             }
         }
@@ -106,26 +118,26 @@ public class PaymentViewModel extends ViewModel {
             bookingData.put("booking_date", firebaseDate);
             bookingData.put("start_time", String.format(Locale.getDefault(), "%02d:00", hour));
             bookingData.put("end_time", String.format(Locale.getDefault(), "%02d:00", hour + 1));
-            bookingData.put("status", 1);
+            bookingData.put("status", (transId != null && !transId.isEmpty()) ? 1 : 2);
             bookingData.put("created_at", now);
             bookingData.put("customer_name", name);
             bookingData.put("customer_phone", phone);
             bookingData.put("note", note);
-            bookingData.put("selected_services", serviceNamesMap); // Lưu Map với Key là Tên dịch vụ
+            bookingData.put("selected_services", serviceNamesMap);
             bookingData.put("total_price_snapshot", total / totalSlots);
 
             Map<String, Object> paymentInfo = new HashMap<>();
             paymentInfo.put("method", "ZaloPay");
-            paymentInfo.put("transaction_code", transId);
-            paymentInfo.put("payment_status", 1);
+            paymentInfo.put("transaction_code", transId != null ? transId : "");
+            paymentInfo.put("payment_status", (transId != null && !transId.isEmpty()) ? 1 : 0);
             paymentInfo.put("amount", total / totalSlots);
-            paymentInfo.put("paid_at", now);
+            paymentInfo.put("paid_at", (transId != null && !transId.isEmpty()) ? now : 0);
             bookingData.put("payment_info", paymentInfo);
 
             mDatabase.child("Bookings").push().setValue(bookingData)
                 .addOnCompleteListener(task -> {
                     if (savedCount.incrementAndGet() == totalSlots) {
-                        mPaymentSuccess.setValue(true);
+                        mPaymentSuccess.postValue(true);
                     }
                 });
         }
@@ -155,13 +167,15 @@ public class PaymentViewModel extends ViewModel {
             }
             sb.append("\n");
         }
-        if (services != null && !services.isEmpty() && venue.getServices() != null) {
+        if (services != null && !services.isEmpty()) {
             sb.append("\nDịch vụ:\n");
             for (Map.Entry<String, Integer> entry : services.entrySet()) {
-                if (venue.getServices().containsKey(entry.getKey())) {
-                    sb.append("- ").append(venue.getServices().get(entry.getKey()).getName())
-                      .append(" (x").append(entry.getValue()).append(")\n");
+                // Nếu key là ID thì lấy tên từ venue, nếu không tìm thấy (hoặc đã là tên) thì dùng chính key đó
+                String name = entry.getKey();
+                if (venue.getServices() != null && venue.getServices().containsKey(name)) {
+                    name = venue.getServices().get(name).getName();
                 }
+                sb.append("- ").append(name).append(" (x").append(entry.getValue()).append(")\n");
             }
         }
         return sb.toString().trim();

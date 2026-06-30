@@ -4,14 +4,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/white"
-    android:padding="24dp">
+    android:paddingHorizontal="24dp"
+    android:paddingBottom="24dp"
+    android:paddingTop="48dp">
 
     <!-- Google Logo -->
     <ImageView
         android:id="@+id/imgGoogleLogo"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="20dp"
         android:src="@drawable/logogg"
         android:contentDescription="Google Logo"
         app:layout_constraintEnd_toEndOf="parent"
